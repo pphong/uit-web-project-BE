@@ -28,7 +28,7 @@ class TransactionController {
       } = req.query;
 
       // Verify wallet belongs to user
-      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user.userId);
+      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user._id);
       if (!wallet) {
         return ApiResponse.notFound(res, 'Wallet not found');
       }
@@ -70,7 +70,7 @@ class TransactionController {
       }
 
       // Verify wallet belongs to user
-      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user.userId);
+      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user._id);
       if (!wallet) {
         return ApiResponse.notFound(res, 'Wallet not found');
       }
@@ -94,7 +94,7 @@ class TransactionController {
       const transactionData = { ...req.body, walletId };
 
       // Verify wallet belongs to user
-      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user.userId);
+      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user._id);
       if (!wallet) {
         return ApiResponse.notFound(res, 'Wallet not found');
       }
@@ -108,9 +108,16 @@ class TransactionController {
         return ApiResponse.badRequest(res, 'Description is required');
       }
 
+      // Create transaction
       const transaction = await this.transactionModel.create(transactionData);
 
-      return ApiResponse.created(res, 'Transaction created successfully', { transaction });
+      // Update wallet with new transaction
+      await this.walletModel.updateWalletForNewTransaction(walletId, transaction);
+
+      return ApiResponse.created(res, 'Transaction created successfully', { 
+        transaction,
+        message: 'Wallet balance and latest transaction updated'
+      });
     } catch (error) {
       logger.error('Error creating transaction:', error);
       return ApiResponse.internalServerError(res, 'Failed to create transaction');
@@ -129,13 +136,13 @@ class TransactionController {
       }
 
       // Verify wallet belongs to user
-      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user.userId);
+      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user._id);
       if (!wallet) {
         return ApiResponse.notFound(res, 'Wallet not found');
       }
 
-      const transaction = await this.transactionModel.findByIdAndWalletId(transactionId, walletId);
-      if (!transaction) {
+      const oldTransaction = await this.transactionModel.findByIdAndWalletId(transactionId, walletId);
+      if (!oldTransaction) {
         return ApiResponse.notFound(res, 'Transaction not found');
       }
 
@@ -144,6 +151,7 @@ class TransactionController {
         return ApiResponse.badRequest(res, 'Amount must be greater than 0');
       }
 
+      // Update transaction
       const success = await this.transactionModel.updateById(transactionId, updateData);
       if (!success) {
         return ApiResponse.internalServerError(res, 'Failed to update transaction');
@@ -151,7 +159,17 @@ class TransactionController {
 
       const updatedTransaction = await this.transactionModel.findById(transactionId);
 
-      return ApiResponse.success(res, 'Transaction updated successfully', { transaction: updatedTransaction });
+      // Update wallet if amount changed
+      if (updateData.amount !== undefined && updateData.amount !== oldTransaction.amount) {
+        await this.walletModel.updateWalletForTransactionUpdate(walletId, oldTransaction, updatedTransaction);
+      }
+
+      return ApiResponse.success(res, 'Transaction updated successfully', { 
+        transaction: updatedTransaction,
+        message: updateData.amount !== undefined && updateData.amount !== oldTransaction.amount 
+          ? 'Wallet balance and latest transaction updated' 
+          : 'Transaction updated'
+      });
     } catch (error) {
       logger.error('Error updating transaction:', error);
       return ApiResponse.internalServerError(res, 'Failed to update transaction');
@@ -169,7 +187,7 @@ class TransactionController {
       }
 
       // Verify wallet belongs to user
-      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user.userId);
+      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user._id);
       if (!wallet) {
         return ApiResponse.notFound(res, 'Wallet not found');
       }
@@ -179,12 +197,18 @@ class TransactionController {
         return ApiResponse.notFound(res, 'Transaction not found');
       }
 
+      // Delete transaction
       const success = await this.transactionModel.deleteById(transactionId);
       if (!success) {
         return ApiResponse.internalServerError(res, 'Failed to delete transaction');
       }
 
-      return ApiResponse.success(res, 'Transaction deleted successfully');
+      // Update wallet after transaction deletion
+      await this.walletModel.updateWalletForTransactionDelete(walletId, transaction);
+
+      return ApiResponse.success(res, 'Transaction deleted successfully', {
+        message: 'Wallet balance and latest transaction updated'
+      });
     } catch (error) {
       logger.error('Error deleting transaction:', error);
       return ApiResponse.internalServerError(res, 'Failed to delete transaction');
@@ -202,7 +226,7 @@ class TransactionController {
       } = req.query;
 
       // Verify wallet belongs to user
-      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user.userId);
+      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user._id);
       if (!wallet) {
         return ApiResponse.notFound(res, 'Wallet not found');
       }
@@ -229,7 +253,7 @@ class TransactionController {
       const { limit = 10 } = req.query;
 
       // Verify wallet belongs to user
-      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user.userId);
+      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user._id);
       if (!wallet) {
         return ApiResponse.notFound(res, 'Wallet not found');
       }
@@ -260,7 +284,7 @@ class TransactionController {
       }
 
       // Verify wallet belongs to user
-      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user.userId);
+      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user._id);
       if (!wallet) {
         return ApiResponse.notFound(res, 'Wallet not found');
       }
@@ -302,7 +326,7 @@ class TransactionController {
       }
 
       // Verify wallet belongs to user
-      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user.userId);
+      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user._id);
       if (!wallet) {
         return ApiResponse.notFound(res, 'Wallet not found');
       }
@@ -344,7 +368,7 @@ class TransactionController {
       }
 
       // Verify wallet belongs to user
-      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user.userId);
+      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user._id);
       if (!wallet) {
         return ApiResponse.notFound(res, 'Wallet not found');
       }
@@ -382,7 +406,7 @@ class TransactionController {
       }
 
       // Verify wallet belongs to user
-      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user.userId);
+      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user._id);
       if (!wallet) {
         return ApiResponse.notFound(res, 'Wallet not found');
       }
@@ -409,7 +433,7 @@ class TransactionController {
       }
 
       // Verify wallet belongs to user
-      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user.userId);
+      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user._id);
       if (!wallet) {
         return ApiResponse.notFound(res, 'Wallet not found');
       }

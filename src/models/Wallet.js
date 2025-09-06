@@ -52,6 +52,7 @@ class Wallet {
           decimalPlaces: walletData.settings?.decimalPlaces || 2
         },
         lastTransactionAt: null,
+        latestTransaction: null,
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -366,6 +367,110 @@ class Wallet {
       return wallet.balance >= amount;
     } catch (error) {
       logger.error('Error checking wallet balance:', error);
+      throw error;
+    }
+  }
+
+  // Update wallet when new transaction is created
+  async updateWalletForNewTransaction(walletId, transactionData) {
+    try {
+      const collection = this.getCollection();
+      const now = new Date();
+      
+      const result = await collection.updateOne(
+        { _id: new ObjectId(String(walletId)) },
+        {
+          $inc: { balance: transactionData.amount },
+          $set: {
+            lastTransactionAt: now,
+            latestTransaction: {
+              id: transactionData._id,
+              amount: transactionData.amount,
+              currency: transactionData.currency,
+              description: transactionData.description,
+              receiver: transactionData.receiver,
+              createdAt: transactionData.createdAt
+            },
+            updatedAt: now
+          }
+        }
+      );
+      
+      if (result.matchedCount === 0) {
+        throw new Error('Wallet not found');
+      }
+      
+      return result;
+    } catch (error) {
+      logger.error('Error updating wallet for new transaction:', error);
+      throw error;
+    }
+  }
+
+  // Update wallet when transaction is updated
+  async updateWalletForTransactionUpdate(walletId, oldTransaction, newTransaction) {
+    try {
+      const collection = this.getCollection();
+      const now = new Date();
+      
+      // Calculate balance difference
+      const balanceDifference = newTransaction.amount - oldTransaction.amount;
+      
+      const result = await collection.updateOne(
+        { _id: new ObjectId(String(walletId)) },
+        {
+          $inc: { balance: balanceDifference },
+          $set: {
+            lastTransactionAt: now,
+            latestTransaction: {
+              id: newTransaction._id,
+              amount: newTransaction.amount,
+              currency: newTransaction.currency,
+              description: newTransaction.description,
+              receiver: newTransaction.receiver,
+              createdAt: newTransaction.createdAt
+            },
+            updatedAt: now
+          }
+        }
+      );
+      
+      if (result.matchedCount === 0) {
+        throw new Error('Wallet not found');
+      }
+      
+      return result;
+    } catch (error) {
+      logger.error('Error updating wallet for transaction update:', error);
+      throw error;
+    }
+  }
+
+  // Update wallet when transaction is deleted
+  async updateWalletForTransactionDelete(walletId, transactionData) {
+    try {
+      const collection = this.getCollection();
+      const now = new Date();
+      
+      const result = await collection.updateOne(
+        { _id: new ObjectId(String(walletId)) },
+        {
+          $inc: { balance: -transactionData.amount },
+          $set: {
+            lastTransactionAt: now,
+            latestTransaction: null, // Clear latest transaction
+            updatedAt: now
+          }
+        }
+      );
+      
+      if (result.matchedCount === 0) {
+        throw new Error('Wallet not found');
+      }
+      
+      return result;
+    } catch (error) {
+      logger.error('Error updating wallet for transaction delete:', error);
       throw error;
     }
   }
