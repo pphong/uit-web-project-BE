@@ -76,7 +76,7 @@ router.use(authenticate);
  *       401:
  *         description: Unauthorized
  */
-router.get('/', requireUserOrAdmin, labelController.getUserLabels);
+router.get('/', requireUserOrAdmin, (req, res) => labelController.getUserLabels(req, res));
 
 /**
  * @swagger
@@ -96,7 +96,7 @@ router.get('/', requireUserOrAdmin, labelController.getUserLabels);
  *       401:
  *         description: Unauthorized
  */
-router.get('/stats', requireUserOrAdmin, labelController.getLabelStats);
+router.get('/stats', requireUserOrAdmin, (req, res) => labelController.getLabelStats(req, res));
 
 /**
  * @swagger
@@ -130,7 +130,7 @@ router.get('/stats', requireUserOrAdmin, labelController.getLabelStats);
  *       401:
  *         description: Unauthorized
  */
-router.get('/most-used', requireUserOrAdmin, labelController.getMostUsedLabels);
+router.get('/most-used', requireUserOrAdmin, (req, res) => labelController.getMostUsedLabels(req, res));
 
 /**
  * @swagger
@@ -157,7 +157,7 @@ router.get('/most-used', requireUserOrAdmin, labelController.getMostUsedLabels);
  *       401:
  *         description: Unauthorized
  */
-router.get('/recently-used', requireUserOrAdmin, labelController.getRecentlyUsedLabels);
+router.get('/recently-used', requireUserOrAdmin, (req, res) => labelController.getRecentlyUsedLabels(req, res));
 
 /**
  * @swagger
@@ -188,7 +188,7 @@ router.get('/recently-used', requireUserOrAdmin, labelController.getRecentlyUsed
  *       404:
  *         description: Label not found
  */
-router.get('/:labelId', requireUserOrAdmin, labelController.getLabelById);
+router.get('/:labelId', requireUserOrAdmin, (req, res) => labelController.getLabelById(req, res));
 
 /**
  * @swagger
@@ -236,7 +236,7 @@ router.get('/:labelId', requireUserOrAdmin, labelController.getLabelById);
  *       401:
  *         description: Unauthorized
  */
-router.post('/', requireUserOrAdmin, validate(labelSchemas.createLabel), labelController.createLabel);
+router.post('/', requireUserOrAdmin, validate(labelSchemas.createLabel), (req, res) => labelController.createLabel(req, res));
 
 /**
  * @swagger
@@ -289,7 +289,7 @@ router.post('/', requireUserOrAdmin, validate(labelSchemas.createLabel), labelCo
  *       404:
  *         description: Label not found
  */
-router.put('/:labelId', requireUserOrAdmin, validate(labelSchemas.updateLabel), labelController.updateLabel);
+router.put('/:labelId', requireUserOrAdmin, validate(labelSchemas.updateLabel), (req, res) => labelController.updateLabel(req, res));
 
 /**
  * @swagger
@@ -320,7 +320,7 @@ router.put('/:labelId', requireUserOrAdmin, validate(labelSchemas.updateLabel), 
  *       404:
  *         description: Label not found
  */
-router.delete('/:labelId', requireUserOrAdmin, labelController.deleteLabel);
+router.delete('/:labelId', requireUserOrAdmin, (req, res) => labelController.deleteLabel(req, res));
 
 /**
  * @swagger
@@ -351,7 +351,7 @@ router.delete('/:labelId', requireUserOrAdmin, labelController.deleteLabel);
  *       404:
  *         description: Label not found
  */
-router.patch('/:labelId/set-default', requireUserOrAdmin, labelController.setDefaultLabel);
+router.patch('/:labelId/set-default', requireUserOrAdmin, (req, res) => labelController.setDefaultLabel(req, res));
 
 /**
  * @swagger
@@ -380,7 +380,7 @@ router.patch('/:labelId/set-default', requireUserOrAdmin, labelController.setDef
  *       404:
  *         description: Category not found
  */
-router.get('/category/:categoryId', requireUserOrAdmin, labelController.getLabelsByCategoryId);
+router.get('/category/:categoryId', requireUserOrAdmin, (req, res) => labelController.getLabelsByCategoryId(req, res));
 
 /**
  * @swagger
@@ -407,6 +407,6 @@ router.get('/category/:categoryId', requireUserOrAdmin, labelController.getLabel
  *       401:
  *         description: Unauthorized
  */
-router.get('/category-name/:category', requireUserOrAdmin, labelController.getLabelsByCategory);
+router.get('/category-name/:category', requireUserOrAdmin, (req, res) => labelController.getLabelsByCategory(req, res));
 
 module.exports = router;

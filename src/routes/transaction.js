@@ -107,7 +107,7 @@ router.use(authenticate);
  *       404:
  *         description: Wallet not found
  */
-router.get('/:walletId/transactions', requireUserOrAdmin, transactionController.getWalletTransactions);
+router.get('/:walletId/transactions', requireUserOrAdmin, (req, res) => transactionController.getWalletTransactions(req, res));
 
 /**
  * @swagger
@@ -144,7 +144,7 @@ router.get('/:walletId/transactions', requireUserOrAdmin, transactionController.
  *       404:
  *         description: Transaction or wallet not found
  */
-router.get('/:transactionId', requireUserOrAdmin, transactionController.getTransactionById);
+router.get('/:transactionId', requireUserOrAdmin, (req, res) => transactionController.getTransactionById(req, res));
 
 /**
  * @swagger
@@ -212,7 +212,7 @@ router.get('/:transactionId', requireUserOrAdmin, transactionController.getTrans
  *       404:
  *         description: Wallet not found
  */
-router.post('/:walletId/transactions', requireUserOrAdmin, validate(transactionSchemas.createTransaction), transactionController.createTransaction);
+router.post('/:walletId/transactions', requireUserOrAdmin, validate(transactionSchemas.createTransaction), (req, res) => transactionController.createTransaction(req, res));
 
 /**
  * @swagger
@@ -282,7 +282,7 @@ router.post('/:walletId/transactions', requireUserOrAdmin, validate(transactionS
  *       404:
  *         description: Transaction or wallet not found
  */
-router.put('/:transactionId', requireUserOrAdmin, validate(transactionSchemas.updateTransaction), transactionController.updateTransaction);
+router.put('/:transactionId', requireUserOrAdmin, validate(transactionSchemas.updateTransaction), (req, res) => transactionController.updateTransaction(req, res));
 
 /**
  * @swagger
@@ -319,7 +319,7 @@ router.put('/:transactionId', requireUserOrAdmin, validate(transactionSchemas.up
  *       404:
  *         description: Transaction or wallet not found
  */
-router.delete('/:transactionId', requireUserOrAdmin, transactionController.deleteTransaction);
+router.delete('/:transactionId', requireUserOrAdmin, (req, res) => transactionController.deleteTransaction(req, res));
 
 /**
  * @swagger
@@ -366,7 +366,7 @@ router.delete('/:transactionId', requireUserOrAdmin, transactionController.delet
  *       404:
  *         description: Wallet not found
  */
-router.get('/:walletId/transactions/stats', requireUserOrAdmin, transactionController.getTransactionStats);
+router.get('/:walletId/transactions/stats', requireUserOrAdmin, (req, res) => transactionController.getTransactionStats(req, res));
 
 /**
  * @swagger
@@ -401,7 +401,7 @@ router.get('/:walletId/transactions/stats', requireUserOrAdmin, transactionContr
  *       404:
  *         description: Wallet not found
  */
-router.get('/:walletId/transactions/recent', requireUserOrAdmin, transactionController.getRecentTransactions);
+router.get('/:walletId/transactions/recent', requireUserOrAdmin, (req, res) => transactionController.getRecentTransactions(req, res));
 
 /**
  * @swagger
@@ -464,7 +464,7 @@ router.get('/:walletId/transactions/recent', requireUserOrAdmin, transactionCont
  *       404:
  *         description: Wallet not found
  */
-router.get('/:walletId/transactions/search', requireUserOrAdmin, transactionController.searchTransactions);
+router.get('/:walletId/transactions/search', requireUserOrAdmin, (req, res) => transactionController.searchTransactions(req, res));
 
 /**
  * @swagger
@@ -535,7 +535,7 @@ router.get('/:walletId/transactions/search', requireUserOrAdmin, transactionCont
  *       404:
  *         description: Wallet not found
  */
-router.get('/:walletId/transactions/date-range', requireUserOrAdmin, transactionController.getTransactionsByDateRange);
+router.get('/:walletId/transactions/date-range', requireUserOrAdmin, (req, res) => transactionController.getTransactionsByDateRange(req, res));
 
 /**
  * @swagger
@@ -598,7 +598,7 @@ router.get('/:walletId/transactions/date-range', requireUserOrAdmin, transaction
  *       404:
  *         description: Wallet not found
  */
-router.get('/:walletId/transactions/labels', requireUserOrAdmin, transactionController.getTransactionsByLabels);
+router.get('/:walletId/transactions/labels', requireUserOrAdmin, (req, res) => transactionController.getTransactionsByLabels(req, res));
 
 /**
  * @swagger
@@ -666,7 +666,7 @@ router.get('/:walletId/transactions/labels', requireUserOrAdmin, transactionCont
  *       404:
  *         description: Wallet not found
  */
-router.put('/:walletId/transactions/bulk-update', requireUserOrAdmin, validate(transactionSchemas.bulkUpdateTransactions), transactionController.bulkUpdateTransactions);
+router.put('/:walletId/transactions/bulk-update', requireUserOrAdmin, validate(transactionSchemas.bulkUpdateTransactions), (req, res) => transactionController.bulkUpdateTransactions(req, res));
 
 /**
  * @swagger
@@ -709,6 +709,6 @@ router.put('/:walletId/transactions/bulk-update', requireUserOrAdmin, validate(t
  *       404:
  *         description: Wallet not found
  */
-router.delete('/:walletId/transactions/bulk-delete', requireUserOrAdmin, validate(transactionSchemas.bulkDeleteTransactions), transactionController.bulkDeleteTransactions);
+router.delete('/:walletId/transactions/bulk-delete', requireUserOrAdmin, validate(transactionSchemas.bulkDeleteTransactions), (req, res) => transactionController.bulkDeleteTransactions(req, res));
 
 module.exports = router;

@@ -66,7 +66,7 @@ router.use(authenticate);
  *       401:
  *         description: Unauthorized
  */
-router.get('/', requireUserOrAdmin, walletController.getUserWallets);
+router.get('/', requireUserOrAdmin, (req, res) => walletController.getUserWallets(req, res));
 
 /**
  * @swagger
@@ -86,7 +86,7 @@ router.get('/', requireUserOrAdmin, walletController.getUserWallets);
  *       401:
  *         description: Unauthorized
  */
-router.get('/stats', requireUserOrAdmin, walletController.getWalletStats);
+router.get('/stats', requireUserOrAdmin, (req, res) => walletController.getWalletStats(req, res));
 
 /**
  * @swagger
@@ -117,7 +117,7 @@ router.get('/stats', requireUserOrAdmin, walletController.getWalletStats);
  *       404:
  *         description: Wallet not found
  */
-router.get('/:walletId', requireUserOrAdmin, walletController.getWalletById);
+router.get('/:walletId', requireUserOrAdmin, (req, res) => walletController.getWalletById(req, res));
 
 /**
  * @swagger
@@ -170,7 +170,7 @@ router.post(
   '/',
   requireUserOrAdmin,
   validate(walletSchemas.createWallet),
-  walletController.createWallet
+  (req, res) => walletController.createWallet(req, res)
 );
 
 /**
@@ -222,7 +222,7 @@ router.put(
   '/:walletId',
   requireUserOrAdmin,
   validate(walletSchemas.updateWallet),
-  walletController.updateWallet
+  (req, res) => walletController.updateWallet(req, res)
 );
 
 /**
@@ -254,7 +254,7 @@ router.put(
  *       404:
  *         description: Wallet not found
  */
-router.delete('/:walletId', requireUserOrAdmin, walletController.deleteWallet);
+router.delete('/:walletId', requireUserOrAdmin, (req, res) => walletController.deleteWallet(req, res));
 
 /**
  * @swagger
@@ -288,7 +288,7 @@ router.delete('/:walletId', requireUserOrAdmin, walletController.deleteWallet);
 router.patch(
   '/:walletId/set-default',
   requireUserOrAdmin,
-  walletController.setDefaultWallet
+  (req, res) => walletController.setDefaultWallet(req, res)
 );
 
 /**
@@ -341,7 +341,7 @@ router.post(
   '/transfer',
   requireUserOrAdmin,
   validate(walletSchemas.transfer),
-  walletController.transferBetweenWallets
+  (req, res) => walletController.transferBetweenWallets(req, res)
 );
 
 module.exports = router;

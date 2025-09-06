@@ -65,7 +65,7 @@ router.use(authenticate);
  *       403:
  *         description: Forbidden - Admin access required
  */
-router.get('/', requireAdmin, userController.getAllUsers);
+router.get('/', requireAdmin, (req, res) => userController.getAllUsers(req, res));
 
 /**
  * @swagger
@@ -87,7 +87,7 @@ router.get('/', requireAdmin, userController.getAllUsers);
  *       403:
  *         description: Forbidden - Admin access required
  */
-router.get('/stats', requireAdmin, userController.getUserStats);
+router.get('/stats', requireAdmin, (req, res) => userController.getUserStats(req, res));
 
 /**
  * @swagger
@@ -120,7 +120,7 @@ router.get('/stats', requireAdmin, userController.getUserStats);
  *       404:
  *         description: User not found
  */
-router.get('/:userId', requireAdmin, userController.getUserById);
+router.get('/:userId', requireAdmin, (req, res) => userController.getUserById(req, res));
 
 /**
  * @swagger
@@ -179,7 +179,7 @@ router.get('/:userId', requireAdmin, userController.getUserById);
  *       404:
  *         description: User not found
  */
-router.put('/:userId', requireAdmin, validate(userSchemas.adminUpdateUser), userController.updateUser);
+router.put('/:userId', requireAdmin, validate(userSchemas.adminUpdateUser), (req, res) => userController.updateUser(req, res));
 
 /**
  * @swagger
@@ -212,7 +212,7 @@ router.put('/:userId', requireAdmin, validate(userSchemas.adminUpdateUser), user
  *       404:
  *         description: User not found
  */
-router.delete('/:userId', requireAdmin, userController.deleteUser);
+router.delete('/:userId', requireAdmin, (req, res) => userController.deleteUser(req, res));
 
 /**
  * @swagger
@@ -245,7 +245,7 @@ router.delete('/:userId', requireAdmin, userController.deleteUser);
  *       404:
  *         description: User not found
  */
-router.patch('/:userId/activate', requireAdmin, userController.activateUser);
+router.patch('/:userId/activate', requireAdmin, (req, res) => userController.activateUser(req, res));
 
 /**
  * @swagger
@@ -278,6 +278,6 @@ router.patch('/:userId/activate', requireAdmin, userController.activateUser);
  *       404:
  *         description: User not found
  */
-router.patch('/:userId/deactivate', requireAdmin, userController.deactivateUser);
+router.patch('/:userId/deactivate', requireAdmin, (req, res) => userController.deactivateUser(req, res));
 
 module.exports = router;

@@ -77,7 +77,7 @@ router.use(authenticate);
  *       401:
  *         description: Unauthorized
  */
-router.get('/', requireUserOrAdmin, categoryController.getUserCategories);
+router.get('/', requireUserOrAdmin, (req, res) => categoryController.getUserCategories(req, res));
 
 /**
  * @swagger
@@ -97,7 +97,7 @@ router.get('/', requireUserOrAdmin, categoryController.getUserCategories);
  *       401:
  *         description: Unauthorized
  */
-router.get('/stats', requireUserOrAdmin, categoryController.getCategoryStats);
+router.get('/stats', requireUserOrAdmin, (req, res) => categoryController.getCategoryStats(req, res));
 
 /**
  * @swagger
@@ -127,7 +127,7 @@ router.get('/stats', requireUserOrAdmin, categoryController.getCategoryStats);
  *       401:
  *         description: Unauthorized
  */
-router.get('/type/:type', requireUserOrAdmin, categoryController.getCategoriesByType);
+router.get('/type/:type', requireUserOrAdmin, (req, res) => categoryController.getCategoriesByType(req, res));
 
 /**
  * @swagger
@@ -158,7 +158,7 @@ router.get('/type/:type', requireUserOrAdmin, categoryController.getCategoriesBy
  *       404:
  *         description: Category not found
  */
-router.get('/:categoryId', requireUserOrAdmin, categoryController.getCategoryById);
+router.get('/:categoryId', requireUserOrAdmin, (req, res) => categoryController.getCategoryById(req, res));
 
 /**
  * @swagger
@@ -212,7 +212,7 @@ router.get('/:categoryId', requireUserOrAdmin, categoryController.getCategoryByI
  *       409:
  *         description: Category name already exists
  */
-router.post('/', requireUserOrAdmin, validate(categorySchemas.createCategory), categoryController.createCategory);
+router.post('/', requireUserOrAdmin, validate(categorySchemas.createCategory), (req, res) => categoryController.createCategory(req, res));
 
 /**
  * @swagger
@@ -271,7 +271,7 @@ router.post('/', requireUserOrAdmin, validate(categorySchemas.createCategory), c
  *       409:
  *         description: Category name already exists
  */
-router.put('/:categoryId', requireUserOrAdmin, validate(categorySchemas.updateCategory), categoryController.updateCategory);
+router.put('/:categoryId', requireUserOrAdmin, validate(categorySchemas.updateCategory), (req, res) => categoryController.updateCategory(req, res));
 
 /**
  * @swagger
@@ -302,7 +302,7 @@ router.put('/:categoryId', requireUserOrAdmin, validate(categorySchemas.updateCa
  *       404:
  *         description: Category not found
  */
-router.delete('/:categoryId', requireUserOrAdmin, categoryController.deleteCategory);
+router.delete('/:categoryId', requireUserOrAdmin, (req, res) => categoryController.deleteCategory(req, res));
 
 /**
  * @swagger
@@ -368,7 +368,7 @@ router.delete('/:categoryId', requireUserOrAdmin, categoryController.deleteCateg
  *       401:
  *         description: Unauthorized
  */
-router.get('/search', requireUserOrAdmin, categoryController.searchCategories);
+router.get('/search', requireUserOrAdmin, (req, res) => categoryController.searchCategories(req, res));
 
 /**
  * @swagger
@@ -397,7 +397,7 @@ router.get('/search', requireUserOrAdmin, categoryController.searchCategories);
  *       404:
  *         description: Category not found
  */
-router.get('/:categoryId/labels', requireUserOrAdmin, categoryController.getCategoryLabels);
+router.get('/:categoryId/labels', requireUserOrAdmin, (req, res) => categoryController.getCategoryLabels(req, res));
 
 /**
  * @swagger
@@ -419,7 +419,7 @@ router.get('/:categoryId/labels', requireUserOrAdmin, categoryController.getCate
  *       401:
  *         description: Unauthorized
  */
-router.post('/default/create', requireUserOrAdmin, categoryController.createDefaultCategories);
+router.post('/default/create', requireUserOrAdmin, (req, res) => categoryController.createDefaultCategories(req, res));
 
 /**
  * @swagger
@@ -459,6 +459,6 @@ router.post('/default/create', requireUserOrAdmin, categoryController.createDefa
  *       401:
  *         description: Unauthorized
  */
-router.put('/bulk-update', requireUserOrAdmin, categoryController.bulkUpdateCategories);
+router.put('/bulk-update', requireUserOrAdmin, (req, res) => categoryController.bulkUpdateCategories(req, res));
 
 module.exports = router;
