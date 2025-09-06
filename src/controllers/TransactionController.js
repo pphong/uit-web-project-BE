@@ -5,8 +5,8 @@ const logger = require('../utils/logger');
 
 class TransactionController {
   constructor() {
-    this.transactionModel = Transaction;
-    this.walletModel = Wallet;
+    this.transactionModel = new Transaction();
+    this.walletModel = new Wallet();
   }
 
   // Get wallet transactions
@@ -426,4 +426,4 @@ class TransactionController {
   }
 }
 
-module.exports = new TransactionController();
+module.exports = TransactionController;

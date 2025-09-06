@@ -13,6 +13,7 @@ const database = require('./config/database');
 const logger = require('./utils/logger');
 const ApiResponse = require('./utils/response');
 const NotificationService = require('./services/NotificationService');
+const notificationService = new NotificationService();
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -29,6 +30,13 @@ const Wallet = require('./models/Wallet');
 const Transaction = require('./models/Transaction');
 const Label = require('./models/Label');
 const Category = require('./models/Category');
+
+// Create model instances
+const userModel = new User();
+const walletModel = new Wallet();
+const transactionModel = new Transaction();
+const labelModel = new Label();
+const categoryModel = new Category();
 
 const app = express();
 
@@ -212,11 +220,11 @@ async function initializeApp() {
     
     // Create indexes for all collections
     await Promise.all([
-      User.createIndexes(),
-      Wallet.createIndexes(),
-      Transaction.createIndexes(),
-      Label.createIndexes(),
-      Category.createIndexes()
+      userModel.createIndexes(),
+      walletModel.createIndexes(),
+      transactionModel.createIndexes(),
+      labelModel.createIndexes(),
+      categoryModel.createIndexes()
     ]);
     
     logger.info('✅ Database indexes created successfully');
@@ -233,7 +241,7 @@ async function initializeApp() {
 
     // Initialize WebSocket service
     try {
-      await NotificationService.initialize(server);
+      await notificationService.initialize(server);
       logger.info('✅ WebSocket service initialized successfully');
     } catch (error) {
       logger.error('❌ Failed to initialize WebSocket service:', error);
@@ -248,7 +256,7 @@ async function initializeApp() {
 process.on('SIGINT', async () => {
   logger.info('🛑 Received SIGINT, shutting down gracefully...');
   try {
-    await NotificationService.close();
+    await notificationService.close();
     await database.closeConnection();
     logger.info('✅ Graceful shutdown completed');
     process.exit(0);
@@ -261,7 +269,7 @@ process.on('SIGINT', async () => {
 process.on('SIGTERM', async () => {
   logger.info('🛑 Received SIGTERM, shutting down gracefully...');
   try {
-    await NotificationService.close();
+    await notificationService.close();
     await database.closeConnection();
     logger.info('✅ Graceful shutdown completed');
     process.exit(0);

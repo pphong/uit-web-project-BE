@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const WalletController = require('../controllers/WalletController');
+const walletController = new WalletController();
 const { validate, walletSchemas } = require('../middleware/validation');
 const { authenticate, requireUserOrAdmin } = require('../middleware/auth');
 
@@ -65,7 +66,7 @@ router.use(authenticate);
  *       401:
  *         description: Unauthorized
  */
-router.get('/', requireUserOrAdmin, WalletController.getUserWallets);
+router.get('/', requireUserOrAdmin, walletController.getUserWallets);
 
 /**
  * @swagger
@@ -85,7 +86,7 @@ router.get('/', requireUserOrAdmin, WalletController.getUserWallets);
  *       401:
  *         description: Unauthorized
  */
-router.get('/stats', requireUserOrAdmin, WalletController.getWalletStats);
+router.get('/stats', requireUserOrAdmin, walletController.getWalletStats);
 
 /**
  * @swagger
@@ -116,7 +117,7 @@ router.get('/stats', requireUserOrAdmin, WalletController.getWalletStats);
  *       404:
  *         description: Wallet not found
  */
-router.get('/:walletId', requireUserOrAdmin, WalletController.getWalletById);
+router.get('/:walletId', requireUserOrAdmin, walletController.getWalletById);
 
 /**
  * @swagger
@@ -169,7 +170,7 @@ router.post(
   '/',
   requireUserOrAdmin,
   validate(walletSchemas.createWallet),
-  WalletController.createWallet
+  walletController.createWallet
 );
 
 /**
@@ -221,7 +222,7 @@ router.put(
   '/:walletId',
   requireUserOrAdmin,
   validate(walletSchemas.updateWallet),
-  WalletController.updateWallet
+  walletController.updateWallet
 );
 
 /**
@@ -253,7 +254,7 @@ router.put(
  *       404:
  *         description: Wallet not found
  */
-router.delete('/:walletId', requireUserOrAdmin, WalletController.deleteWallet);
+router.delete('/:walletId', requireUserOrAdmin, walletController.deleteWallet);
 
 /**
  * @swagger
@@ -287,7 +288,7 @@ router.delete('/:walletId', requireUserOrAdmin, WalletController.deleteWallet);
 router.patch(
   '/:walletId/set-default',
   requireUserOrAdmin,
-  WalletController.setDefaultWallet
+  walletController.setDefaultWallet
 );
 
 /**
@@ -340,7 +341,7 @@ router.post(
   '/transfer',
   requireUserOrAdmin,
   validate(walletSchemas.transfer),
-  WalletController.transferBetweenWallets
+  walletController.transferBetweenWallets
 );
 
 module.exports = router;

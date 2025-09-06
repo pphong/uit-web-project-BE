@@ -550,4 +550,4 @@ class Label {
   }
 }
 
-module.exports = new Label();
+module.exports = Label;

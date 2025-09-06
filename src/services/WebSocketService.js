@@ -366,4 +366,4 @@ class WebSocketService {
   }
 }
 
-module.exports = new WebSocketService();
+module.exports = WebSocketService;

@@ -5,8 +5,8 @@ const logger = require('../utils/logger');
 
 class CategoryController {
   constructor() {
-    this.categoryModel = Category;
-    this.labelModel = Label;
+    this.categoryModel = new Category();
+    this.labelModel = new Label();
   }
 
   // Get user categories
@@ -315,4 +315,4 @@ class CategoryController {
   }
 }
 
-module.exports = new CategoryController();
+module.exports = CategoryController;

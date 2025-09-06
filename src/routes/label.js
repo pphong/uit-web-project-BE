@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const LabelController = require('../controllers/LabelController');
+const labelController = new LabelController();
 const { validate, labelSchemas } = require('../middleware/validation');
 const { authenticate, requireUserOrAdmin } = require('../middleware/auth');
 
@@ -75,7 +76,7 @@ router.use(authenticate);
  *       401:
  *         description: Unauthorized
  */
-router.get('/', requireUserOrAdmin, LabelController.getUserLabels);
+router.get('/', requireUserOrAdmin, labelController.getUserLabels);
 
 /**
  * @swagger
@@ -95,7 +96,7 @@ router.get('/', requireUserOrAdmin, LabelController.getUserLabels);
  *       401:
  *         description: Unauthorized
  */
-router.get('/stats', requireUserOrAdmin, LabelController.getLabelStats);
+router.get('/stats', requireUserOrAdmin, labelController.getLabelStats);
 
 /**
  * @swagger
@@ -129,7 +130,7 @@ router.get('/stats', requireUserOrAdmin, LabelController.getLabelStats);
  *       401:
  *         description: Unauthorized
  */
-router.get('/most-used', requireUserOrAdmin, LabelController.getMostUsedLabels);
+router.get('/most-used', requireUserOrAdmin, labelController.getMostUsedLabels);
 
 /**
  * @swagger
@@ -156,7 +157,7 @@ router.get('/most-used', requireUserOrAdmin, LabelController.getMostUsedLabels);
  *       401:
  *         description: Unauthorized
  */
-router.get('/recently-used', requireUserOrAdmin, LabelController.getRecentlyUsedLabels);
+router.get('/recently-used', requireUserOrAdmin, labelController.getRecentlyUsedLabels);
 
 /**
  * @swagger
@@ -187,7 +188,7 @@ router.get('/recently-used', requireUserOrAdmin, LabelController.getRecentlyUsed
  *       404:
  *         description: Label not found
  */
-router.get('/:labelId', requireUserOrAdmin, LabelController.getLabelById);
+router.get('/:labelId', requireUserOrAdmin, labelController.getLabelById);
 
 /**
  * @swagger
@@ -235,7 +236,7 @@ router.get('/:labelId', requireUserOrAdmin, LabelController.getLabelById);
  *       401:
  *         description: Unauthorized
  */
-router.post('/', requireUserOrAdmin, validate(labelSchemas.createLabel), LabelController.createLabel);
+router.post('/', requireUserOrAdmin, validate(labelSchemas.createLabel), labelController.createLabel);
 
 /**
  * @swagger
@@ -288,7 +289,7 @@ router.post('/', requireUserOrAdmin, validate(labelSchemas.createLabel), LabelCo
  *       404:
  *         description: Label not found
  */
-router.put('/:labelId', requireUserOrAdmin, validate(labelSchemas.updateLabel), LabelController.updateLabel);
+router.put('/:labelId', requireUserOrAdmin, validate(labelSchemas.updateLabel), labelController.updateLabel);
 
 /**
  * @swagger
@@ -319,7 +320,7 @@ router.put('/:labelId', requireUserOrAdmin, validate(labelSchemas.updateLabel), 
  *       404:
  *         description: Label not found
  */
-router.delete('/:labelId', requireUserOrAdmin, LabelController.deleteLabel);
+router.delete('/:labelId', requireUserOrAdmin, labelController.deleteLabel);
 
 /**
  * @swagger
@@ -350,7 +351,7 @@ router.delete('/:labelId', requireUserOrAdmin, LabelController.deleteLabel);
  *       404:
  *         description: Label not found
  */
-router.patch('/:labelId/set-default', requireUserOrAdmin, LabelController.setDefaultLabel);
+router.patch('/:labelId/set-default', requireUserOrAdmin, labelController.setDefaultLabel);
 
 /**
  * @swagger
@@ -379,7 +380,7 @@ router.patch('/:labelId/set-default', requireUserOrAdmin, LabelController.setDef
  *       404:
  *         description: Category not found
  */
-router.get('/category/:categoryId', requireUserOrAdmin, LabelController.getLabelsByCategoryId);
+router.get('/category/:categoryId', requireUserOrAdmin, labelController.getLabelsByCategoryId);
 
 /**
  * @swagger
@@ -406,6 +407,6 @@ router.get('/category/:categoryId', requireUserOrAdmin, LabelController.getLabel
  *       401:
  *         description: Unauthorized
  */
-router.get('/category-name/:category', requireUserOrAdmin, LabelController.getLabelsByCategory);
+router.get('/category-name/:category', requireUserOrAdmin, labelController.getLabelsByCategory);
 
 module.exports = router;

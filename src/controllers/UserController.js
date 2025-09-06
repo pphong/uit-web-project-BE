@@ -4,7 +4,7 @@ const logger = require('../utils/logger');
 
 class UserController {
   constructor() {
-    this.userModel = User;
+    this.userModel = new User();
   }
 
   // Get all users with pagination and search
@@ -313,4 +313,4 @@ class UserController {
   }
 }
 
-module.exports = new UserController();
+module.exports = UserController;

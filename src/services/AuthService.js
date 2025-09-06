@@ -5,9 +5,9 @@ const logger = require('../utils/logger');
 
 class AuthService {
   constructor() {
-    this.userModel = User;
-    this.walletModel = Wallet;
-    this.labelModel = Label;
+    this.userModel = new User();
+    this.walletModel = new Wallet();
+    this.labelModel = new Label();
   }
 
   // User registration
@@ -248,4 +248,4 @@ class AuthService {
 
 }
 
-module.exports = new AuthService();
+module.exports = AuthService;

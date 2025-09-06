@@ -479,4 +479,4 @@ class Transaction {
   }
 }
 
-module.exports = new Transaction();
+module.exports = Transaction;

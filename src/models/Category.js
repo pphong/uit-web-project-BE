@@ -470,4 +470,4 @@ class Category {
   }
 }
 
-module.exports = new Category();
+module.exports = Category;

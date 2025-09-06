@@ -1,4 +1,5 @@
 const AuthService = require('../services/AuthService');
+const authService = new AuthService();
 const ApiResponse = require('../utils/response');
 const logger = require('../utils/logger');
 
@@ -10,7 +11,7 @@ class AuthController {
    */
   async register(req, res) {
     try {
-      const result = await AuthService.register(req.body);
+      const result = await authService.register(req.body);
       
       logger.info(`User registration successful: ${result.user.email}`);
       
@@ -38,7 +39,7 @@ class AuthController {
   async login(req, res) {
     try {
       const { email, password } = req.body;
-      const result = await AuthService.login(email, password);
+      const result = await authService.login(email, password);
       
       logger.info(`User login successful: ${result.user.email}`);
       
@@ -79,7 +80,7 @@ class AuthController {
         return ApiResponse.badRequest(res, 'Refresh token is required');
       }
       
-      const result = await AuthService.refreshToken(refreshToken);
+      const result = await authService.refreshToken(refreshToken);
       
       logger.info(`Token refreshed successfully for user: ${result.user.email}`);
       
@@ -114,7 +115,7 @@ class AuthController {
    */
   async logout(req, res) {
     try {
-      await AuthService.logout(req.user._id);
+      await authService.logout(req.user._id);
       
       logger.info(`User logged out: ${req.user.email}`);
       
@@ -132,7 +133,7 @@ class AuthController {
    */
   async getProfile(req, res) {
     try {
-      const profile = await AuthService.getProfile(req.user._id);
+      const profile = await authService.getProfile(req.user._id);
       
       return ApiResponse.success(res, 'Profile retrieved successfully', profile);
     } catch (error) {
@@ -153,7 +154,7 @@ class AuthController {
    */
   async updateProfile(req, res) {
     try {
-      const updatedProfile = await AuthService.updateProfile(req.user._id, req.body);
+      const updatedProfile = await authService.updateProfile(req.user._id, req.body);
       
       logger.info(`Profile updated for user: ${req.user.email}`);
       
@@ -182,7 +183,7 @@ class AuthController {
         return ApiResponse.badRequest(res, 'New password and confirm password do not match');
       }
       
-      await AuthService.changePassword(req.user._id, currentPassword, newPassword);
+      await authService.changePassword(req.user._id, currentPassword, newPassword);
       
       logger.info(`Password changed for user: ${req.user.email}`);
       
@@ -203,4 +204,4 @@ class AuthController {
   }
 }
 
-module.exports = new AuthController();
+module.exports = AuthController;

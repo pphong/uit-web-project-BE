@@ -4,7 +4,7 @@ const logger = require('../utils/logger');
 
 class WalletController {
   constructor() {
-    this.walletModel = Wallet;
+    this.walletModel = new Wallet();
   }
 
   // Get user wallets
@@ -210,4 +210,4 @@ class WalletController {
   }
 }
 
-module.exports = new WalletController();
+module.exports = WalletController;

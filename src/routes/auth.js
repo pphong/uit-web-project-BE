@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const AuthController = require('../controllers/AuthController');
+const authController = new AuthController();
 const { validate, userSchemas } = require('../middleware/validation');
 const { authenticate } = require('../middleware/auth');
 
@@ -65,7 +66,7 @@ const { authenticate } = require('../middleware/auth');
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/register', validate(userSchemas.register), AuthController.register);
+router.post('/register', validate(userSchemas.register), authController.register);
 
 /**
  * @swagger
@@ -104,7 +105,7 @@ router.post('/register', validate(userSchemas.register), AuthController.register
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/login', validate(userSchemas.login), AuthController.login);
+router.post('/login', validate(userSchemas.login), authController.login);
 
 /**
  * @swagger
@@ -138,7 +139,7 @@ router.post('/login', validate(userSchemas.login), AuthController.login);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/refresh-token', AuthController.refreshToken);
+router.post('/refresh-token', authController.refreshToken);
 
 
 // Protected routes (authentication required)
@@ -165,7 +166,7 @@ router.post('/refresh-token', AuthController.refreshToken);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/logout', authenticate, AuthController.logout);
+router.post('/logout', authenticate, authController.logout);
 
 /**
  * @swagger
@@ -189,7 +190,7 @@ router.post('/logout', authenticate, AuthController.logout);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/profile', authenticate, AuthController.getProfile);
+router.get('/profile', authenticate, authController.getProfile);
 
 /**
  * @swagger
@@ -245,7 +246,7 @@ router.get('/profile', authenticate, AuthController.getProfile);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put('/profile', authenticate, validate(userSchemas.updateProfile), AuthController.updateProfile);
+router.put('/profile', authenticate, validate(userSchemas.updateProfile), authController.updateProfile);
 
 /**
  * @swagger
@@ -292,6 +293,6 @@ router.put('/profile', authenticate, validate(userSchemas.updateProfile), AuthCo
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put('/change-password', authenticate, validate(userSchemas.changePassword), AuthController.changePassword);
+router.put('/change-password', authenticate, validate(userSchemas.changePassword), authController.changePassword);
 
 module.exports = router;

@@ -5,8 +5,8 @@ const logger = require('../utils/logger');
 
 class LabelController {
   constructor() {
-    this.labelModel = Label;
-    this.categoryModel = Category;
+    this.labelModel = new Label();
+    this.categoryModel = new Category();
   }
 
   // Get user labels
@@ -345,4 +345,4 @@ class LabelController {
   }
 }
 
-module.exports = new LabelController();
+module.exports = LabelController;

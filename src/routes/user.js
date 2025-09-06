@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const UserController = require('../controllers/UserController');
+const userController = new UserController();
 const { validate, userSchemas, commonSchemas } = require('../middleware/validation');
 const { authenticate, requireAdmin } = require('../middleware/auth');
 
@@ -64,7 +65,7 @@ router.use(authenticate);
  *       403:
  *         description: Forbidden - Admin access required
  */
-router.get('/', requireAdmin, UserController.getAllUsers);
+router.get('/', requireAdmin, userController.getAllUsers);
 
 /**
  * @swagger
@@ -86,7 +87,7 @@ router.get('/', requireAdmin, UserController.getAllUsers);
  *       403:
  *         description: Forbidden - Admin access required
  */
-router.get('/stats', requireAdmin, UserController.getUserStats);
+router.get('/stats', requireAdmin, userController.getUserStats);
 
 /**
  * @swagger
@@ -119,7 +120,7 @@ router.get('/stats', requireAdmin, UserController.getUserStats);
  *       404:
  *         description: User not found
  */
-router.get('/:userId', requireAdmin, UserController.getUserById);
+router.get('/:userId', requireAdmin, userController.getUserById);
 
 /**
  * @swagger
@@ -178,7 +179,7 @@ router.get('/:userId', requireAdmin, UserController.getUserById);
  *       404:
  *         description: User not found
  */
-router.put('/:userId', requireAdmin, validate(userSchemas.adminUpdateUser), UserController.updateUser);
+router.put('/:userId', requireAdmin, validate(userSchemas.adminUpdateUser), userController.updateUser);
 
 /**
  * @swagger
@@ -211,7 +212,7 @@ router.put('/:userId', requireAdmin, validate(userSchemas.adminUpdateUser), User
  *       404:
  *         description: User not found
  */
-router.delete('/:userId', requireAdmin, UserController.deleteUser);
+router.delete('/:userId', requireAdmin, userController.deleteUser);
 
 /**
  * @swagger
@@ -244,7 +245,7 @@ router.delete('/:userId', requireAdmin, UserController.deleteUser);
  *       404:
  *         description: User not found
  */
-router.patch('/:userId/activate', requireAdmin, UserController.activateUser);
+router.patch('/:userId/activate', requireAdmin, userController.activateUser);
 
 /**
  * @swagger
@@ -277,6 +278,6 @@ router.patch('/:userId/activate', requireAdmin, UserController.activateUser);
  *       404:
  *         description: User not found
  */
-router.patch('/:userId/deactivate', requireAdmin, UserController.deactivateUser);
+router.patch('/:userId/deactivate', requireAdmin, userController.deactivateUser);
 
 module.exports = router;

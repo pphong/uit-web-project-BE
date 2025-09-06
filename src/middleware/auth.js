@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const ApiResponse = require('../utils/response');
 const User = require('../models/User');
+const userModel = new User();
 const logger = require('../utils/logger');
 
 /**
@@ -26,7 +27,7 @@ const authenticate = async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       
       // Check if user still exists
-      const user = await User.findById(decoded.userId);
+      const user = await userModel.findById(decoded.userId);
       if (!user) {
         return ApiResponse.unauthorized(res, 'User not found');
       }
@@ -116,7 +117,7 @@ const optionalAuth = async (req, res, next) => {
     
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const user = await User.findById(decoded.userId).select('-password');
+      const user = await userModel.findById(decoded.userId);
       
       if (user && user.isActive) {
         req.user = user;
