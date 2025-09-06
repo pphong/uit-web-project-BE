@@ -3,7 +3,7 @@ const logger = require('../utils/logger');
 
 class NotificationService {
   constructor() {
-    this.wsService = WebSocketService;
+    this.wsService = new WebSocketService();
   }
 
   // Initialize notification services
