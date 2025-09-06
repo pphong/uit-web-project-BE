@@ -44,9 +44,6 @@ class User {
         lastName: userData.lastName,
         role: userData.role || 'user',
         isActive: true,
-        isEmailVerified: false,
-        emailVerificationToken: null,
-        emailVerificationExpires: null,
         passwordResetToken: null,
         passwordResetExpires: null,
         passwordChangedAt: new Date(),
@@ -57,16 +54,6 @@ class User {
         phoneNumber: userData.phoneNumber || null,
         dateOfBirth: userData.dateOfBirth || null,
         address: userData.address || null,
-        preferences: {
-          currency: userData.preferences?.currency || 'VND',
-          language: userData.preferences?.language || 'vi',
-          timezone: userData.preferences?.timezone || 'Asia/Ho_Chi_Minh',
-          notifications: {
-            email: true,
-            push: true,
-            sms: false,
-          },
-        },
         createdAt: new Date(),
         updatedAt: new Date(),
       };
