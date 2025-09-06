@@ -9,207 +9,53 @@ class TransactionController {
     this.walletModel = Wallet;
   }
 
-  // Get user transactions
-  async getUserTransactions(req, res) {
+  // Get wallet transactions
+  async getWalletTransactions(req, res) {
     try {
-      const userId = req.user.userId;
+      const { walletId } = req.params;
       const {
         page = 1,
         limit = 10,
-        walletId = null,
-        type = null,
-        category = null,
-        labels = null,
+        search = '',
         startDate = null,
         endDate = null,
         minAmount = null,
         maxAmount = null,
-        status = null,
-        sortBy = 'date',
+        currency = null,
+        labels = null,
+        sortBy = 'createdAt',
         sortOrder = 'desc'
       } = req.query;
+
+      // Verify wallet belongs to user
+      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user.userId);
+      if (!wallet) {
+        return ApiResponse.notFound(res, 'Wallet not found');
+      }
 
       const options = {
         page: parseInt(page),
         limit: parseInt(limit),
-        walletId,
-        type,
-        category,
-        labels: labels ? labels.split(',') : null,
+        search,
         startDate,
         endDate,
         minAmount: minAmount ? parseFloat(minAmount) : null,
         maxAmount: maxAmount ? parseFloat(maxAmount) : null,
-        status,
+        currency,
+        labels: labels ? labels.split(',').map(id => id.trim()) : [],
         sortBy,
         sortOrder
       };
 
-      const result = await this.transactionModel.findByUserId(userId, options);
+      const result = await this.transactionModel.findByWalletId(walletId, options);
 
       return ApiResponse.success(res, 'Transactions retrieved successfully', {
         transactions: result.transactions,
         pagination: result.pagination
       });
     } catch (error) {
-      logger.error('Error getting user transactions:', error);
+      logger.error('Error getting wallet transactions:', error);
       return ApiResponse.internalServerError(res, 'Failed to retrieve transactions');
-    }
-  }
-
-  // Get transaction statistics
-  async getTransactionStats(req, res) {
-    try {
-      const userId = req.user.userId;
-      const {
-        startDate = null,
-        endDate = null,
-        walletId = null,
-        type = null,
-        category = null
-      } = req.query;
-
-      const options = {
-        startDate,
-        endDate,
-        walletId,
-        type,
-        category
-      };
-
-      const stats = await this.transactionModel.getStats(userId, options);
-
-      return ApiResponse.success(res, 'Transaction statistics retrieved successfully', stats);
-    } catch (error) {
-      logger.error('Error getting transaction stats:', error);
-      return ApiResponse.internalServerError(res, 'Failed to retrieve transaction statistics');
-    }
-  }
-
-  // Get transactions by category
-  async getTransactionsByCategory(req, res) {
-    try {
-      const userId = req.user.userId;
-      const { category } = req.params;
-      const {
-        page = 1,
-        limit = 10,
-        type = null,
-        startDate = null,
-        endDate = null,
-        sortBy = 'date',
-        sortOrder = 'desc'
-      } = req.query;
-
-      const options = {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        type,
-        startDate,
-        endDate,
-        sortBy,
-        sortOrder
-      };
-
-      const result = await this.transactionModel.findByCategory(userId, category, options);
-
-      return ApiResponse.success(res, `Transactions for category "${category}" retrieved successfully`, {
-        transactions: result.transactions,
-        pagination: result.pagination,
-        category
-      });
-    } catch (error) {
-      logger.error('Error getting transactions by category:', error);
-      return ApiResponse.internalServerError(res, 'Failed to retrieve transactions by category');
-    }
-  }
-
-  // Get transactions by type
-  async getTransactionsByType(req, res) {
-    try {
-      const userId = req.user.userId;
-      const { type } = req.params;
-      const {
-        page = 1,
-        limit = 10,
-        startDate = null,
-        endDate = null,
-        sortBy = 'date',
-        sortOrder = 'desc'
-      } = req.query;
-
-      const options = {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        startDate,
-        endDate,
-        sortBy,
-        sortOrder
-      };
-
-      const result = await this.transactionModel.findByType(userId, type, options);
-
-      return ApiResponse.success(res, `${type} transactions retrieved successfully`, {
-        transactions: result.transactions,
-        pagination: result.pagination,
-        type
-      });
-    } catch (error) {
-      logger.error('Error getting transactions by type:', error);
-      return ApiResponse.internalServerError(res, 'Failed to retrieve transactions by type');
-    }
-  }
-
-  // Get transactions by label
-  async getTransactionsByLabel(req, res) {
-    try {
-      const userId = req.user.userId;
-      const { labelId } = req.params;
-      const {
-        page = 1,
-        limit = 10,
-        startDate = null,
-        endDate = null,
-        sortBy = 'date',
-        sortOrder = 'desc'
-      } = req.query;
-
-      const options = {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        startDate,
-        endDate,
-        sortBy,
-        sortOrder
-      };
-
-      const result = await this.transactionModel.findByLabelId(userId, labelId, options);
-
-      return ApiResponse.success(res, `Transactions for label retrieved successfully`, {
-        transactions: result.transactions,
-        pagination: result.pagination,
-        labelId
-      });
-    } catch (error) {
-      logger.error('Error getting transactions by label:', error);
-      return ApiResponse.internalServerError(res, 'Failed to retrieve transactions by label');
-    }
-  }
-
-  // Get recent transactions
-  async getRecentTransactions(req, res) {
-    try {
-      const userId = req.user.userId;
-      const { limit = 10 } = req.query;
-
-      const transactions = await this.transactionModel.getRecentTransactions(userId, parseInt(limit));
-
-      return ApiResponse.success(res, 'Recent transactions retrieved successfully', {
-        transactions
-      });
-    } catch (error) {
-      logger.error('Error getting recent transactions:', error);
-      return ApiResponse.internalServerError(res, 'Failed to retrieve recent transactions');
     }
   }
 
@@ -217,9 +63,19 @@ class TransactionController {
   async getTransactionById(req, res) {
     try {
       const { transactionId } = req.params;
-      const userId = req.user.userId;
+      const { walletId } = req.query;
 
-      const transaction = await this.transactionModel.findByIdAndUserId(transactionId, userId);
+      if (!walletId) {
+        return ApiResponse.badRequest(res, 'Wallet ID is required');
+      }
+
+      // Verify wallet belongs to user
+      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user.userId);
+      if (!wallet) {
+        return ApiResponse.notFound(res, 'Wallet not found');
+      }
+
+      const transaction = await this.transactionModel.findByIdAndWalletId(transactionId, walletId);
       if (!transaction) {
         return ApiResponse.notFound(res, 'Transaction not found');
       }
@@ -234,61 +90,25 @@ class TransactionController {
   // Create new transaction
   async createTransaction(req, res) {
     try {
-      const userId = req.user.userId;
-      const transactionData = { ...req.body, userId };
+      const { walletId } = req.params;
+      const transactionData = { ...req.body, walletId };
 
-      // Validate wallet belongs to user
-      const wallet = await this.walletModel.findByIdAndUserId(transactionData.walletId, userId);
+      // Verify wallet belongs to user
+      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user.userId);
       if (!wallet) {
         return ApiResponse.notFound(res, 'Wallet not found');
       }
 
-      // Handle different transaction types
-      if (transactionData.type === 'transfer') {
-        // Validate transfer wallets
-        if (!transactionData.fromWalletId || !transactionData.toWalletId) {
-          return ApiResponse.badRequest(res, 'Transfer requires both fromWalletId and toWalletId');
-        }
-        
-        if (transactionData.fromWalletId === transactionData.toWalletId) {
-          return ApiResponse.badRequest(res, 'Cannot transfer to the same wallet');
-        }
+      // Validate required fields
+      if (!transactionData.amount || transactionData.amount <= 0) {
+        return ApiResponse.badRequest(res, 'Amount must be greater than 0');
+      }
 
-        // Check if source wallet has sufficient balance
-        const hasBalance = await this.walletModel.hasSufficientBalance(transactionData.fromWalletId, transactionData.amount);
-        if (!hasBalance) {
-          return ApiResponse.badRequest(res, 'Insufficient balance in source wallet');
-        }
-
-        // Validate both wallets belong to user
-        const fromWallet = await this.walletModel.findByIdAndUserId(transactionData.fromWalletId, userId);
-        const toWallet = await this.walletModel.findByIdAndUserId(transactionData.toWalletId, userId);
-        
-        if (!fromWallet || !toWallet) {
-          return ApiResponse.notFound(res, 'One or both wallets not found');
-        }
-      } else if (transactionData.type === 'expense' && transactionData.amount > 0) {
-        const hasBalance = await this.walletModel.hasSufficientBalance(transactionData.walletId, transactionData.amount);
-        if (!hasBalance) {
-          return ApiResponse.badRequest(res, 'Insufficient balance in wallet');
-        }
+      if (!transactionData.description || transactionData.description.trim() === '') {
+        return ApiResponse.badRequest(res, 'Description is required');
       }
 
       const transaction = await this.transactionModel.create(transactionData);
-
-      // Update wallet balance based on transaction type
-      if (transactionData.type === 'income') {
-        await this.walletModel.addIncome(transactionData.walletId, transactionData.amount);
-      } else if (transactionData.type === 'expense') {
-        await this.walletModel.addExpense(transactionData.walletId, transactionData.amount);
-      } else if (transactionData.type === 'transfer') {
-        // Transfer between wallets
-        await this.walletModel.transferBetweenWallets(
-          transactionData.fromWalletId,
-          transactionData.toWalletId,
-          transactionData.amount
-        );
-      }
 
       return ApiResponse.created(res, 'Transaction created successfully', { transaction });
     } catch (error) {
@@ -301,40 +121,27 @@ class TransactionController {
   async updateTransaction(req, res) {
     try {
       const { transactionId } = req.params;
-      const userId = req.user.userId;
+      const { walletId } = req.query;
       const updateData = req.body;
 
-      const transaction = await this.transactionModel.findByIdAndUserId(transactionId, userId);
+      if (!walletId) {
+        return ApiResponse.badRequest(res, 'Wallet ID is required');
+      }
+
+      // Verify wallet belongs to user
+      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user.userId);
+      if (!wallet) {
+        return ApiResponse.notFound(res, 'Wallet not found');
+      }
+
+      const transaction = await this.transactionModel.findByIdAndWalletId(transactionId, walletId);
       if (!transaction) {
         return ApiResponse.notFound(res, 'Transaction not found');
       }
 
-      // If amount or type is being updated, handle wallet balance changes
-      if ((updateData.amount !== undefined && updateData.amount !== transaction.amount) ||
-          (updateData.type !== undefined && updateData.type !== transaction.type)) {
-        
-        const oldAmount = transaction.amount;
-        const oldType = transaction.type;
-        const newAmount = updateData.amount !== undefined ? updateData.amount : oldAmount;
-        const newType = updateData.type !== undefined ? updateData.type : oldType;
-
-        // Revert old transaction effect
-        if (oldType === 'income') {
-          await this.walletModel.addExpense(transaction.walletId, oldAmount);
-        } else if (oldType === 'expense') {
-          await this.walletModel.addIncome(transaction.walletId, oldAmount);
-        }
-
-        // Apply new transaction effect
-        if (newType === 'income') {
-          await this.walletModel.addIncome(transaction.walletId, newAmount);
-        } else if (newType === 'expense') {
-          const hasBalance = await this.walletModel.hasSufficientBalance(transaction.walletId, newAmount);
-          if (!hasBalance) {
-            return ApiResponse.badRequest(res, 'Insufficient balance in wallet');
-          }
-          await this.walletModel.addExpense(transaction.walletId, newAmount);
-        }
+      // Validate amount if provided
+      if (updateData.amount !== undefined && updateData.amount <= 0) {
+        return ApiResponse.badRequest(res, 'Amount must be greater than 0');
       }
 
       const success = await this.transactionModel.updateById(transactionId, updateData);
@@ -351,22 +158,25 @@ class TransactionController {
     }
   }
 
-  // Delete transaction
+  // Delete transaction (soft delete)
   async deleteTransaction(req, res) {
     try {
       const { transactionId } = req.params;
-      const userId = req.user.userId;
+      const { walletId } = req.query;
 
-      const transaction = await this.transactionModel.findByIdAndUserId(transactionId, userId);
-      if (!transaction) {
-        return ApiResponse.notFound(res, 'Transaction not found');
+      if (!walletId) {
+        return ApiResponse.badRequest(res, 'Wallet ID is required');
       }
 
-      // Revert wallet balance changes
-      if (transaction.type === 'income') {
-        await this.walletModel.addExpense(transaction.walletId, transaction.amount);
-      } else if (transaction.type === 'expense') {
-        await this.walletModel.addIncome(transaction.walletId, transaction.amount);
+      // Verify wallet belongs to user
+      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user.userId);
+      if (!wallet) {
+        return ApiResponse.notFound(res, 'Wallet not found');
+      }
+
+      const transaction = await this.transactionModel.findByIdAndWalletId(transactionId, walletId);
+      if (!transaction) {
+        return ApiResponse.notFound(res, 'Transaction not found');
       }
 
       const success = await this.transactionModel.deleteById(transactionId);
@@ -381,54 +191,239 @@ class TransactionController {
     }
   }
 
-  // Add label to transaction
-  async addLabelToTransaction(req, res) {
+  // Get transaction statistics
+  async getTransactionStats(req, res) {
     try {
-      const { transactionId } = req.params;
-      const userId = req.user.userId;
-      const { labelId } = req.body;
+      const { walletId } = req.params;
+      const {
+        startDate = null,
+        endDate = null,
+        currency = null
+      } = req.query;
 
-      const transaction = await this.transactionModel.findByIdAndUserId(transactionId, userId);
-      if (!transaction) {
-        return ApiResponse.notFound(res, 'Transaction not found');
+      // Verify wallet belongs to user
+      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user.userId);
+      if (!wallet) {
+        return ApiResponse.notFound(res, 'Wallet not found');
       }
 
-      const success = await this.transactionModel.addLabel(transactionId, labelId);
-      if (!success) {
-        return ApiResponse.internalServerError(res, 'Failed to add label to transaction');
-      }
+      const options = {
+        startDate,
+        endDate,
+        currency
+      };
 
-      return ApiResponse.success(res, 'Label added to transaction successfully');
+      const stats = await this.transactionModel.getStats(walletId, options);
+
+      return ApiResponse.success(res, 'Transaction statistics retrieved successfully', stats);
     } catch (error) {
-      logger.error('Error adding label to transaction:', error);
-      return ApiResponse.internalServerError(res, 'Failed to add label to transaction');
+      logger.error('Error getting transaction stats:', error);
+      return ApiResponse.internalServerError(res, 'Failed to retrieve transaction statistics');
     }
   }
 
-  // Remove label from transaction
-  async removeLabelFromTransaction(req, res) {
+  // Get recent transactions
+  async getRecentTransactions(req, res) {
     try {
-      const { transactionId } = req.params;
-      const userId = req.user.userId;
-      const { labelId } = req.body;
+      const { walletId } = req.params;
+      const { limit = 10 } = req.query;
 
-      const transaction = await this.transactionModel.findByIdAndUserId(transactionId, userId);
-      if (!transaction) {
-        return ApiResponse.notFound(res, 'Transaction not found');
+      // Verify wallet belongs to user
+      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user.userId);
+      if (!wallet) {
+        return ApiResponse.notFound(res, 'Wallet not found');
       }
 
-      const success = await this.transactionModel.removeLabel(transactionId, labelId);
-      if (!success) {
-        return ApiResponse.internalServerError(res, 'Failed to remove label from transaction');
-      }
+      const transactions = await this.transactionModel.getRecent(walletId, parseInt(limit));
 
-      return ApiResponse.success(res, 'Label removed from transaction successfully');
+      return ApiResponse.success(res, 'Recent transactions retrieved successfully', { transactions });
     } catch (error) {
-      logger.error('Error removing label from transaction:', error);
-      return ApiResponse.internalServerError(res, 'Failed to remove label from transaction');
+      logger.error('Error getting recent transactions:', error);
+      return ApiResponse.internalServerError(res, 'Failed to retrieve recent transactions');
     }
   }
 
+  // Search transactions
+  async searchTransactions(req, res) {
+    try {
+      const { walletId } = req.params;
+      const { query } = req.query;
+      const {
+        page = 1,
+        limit = 10,
+        sortBy = 'createdAt',
+        sortOrder = 'desc'
+      } = req.query;
+
+      if (!query || !query.trim()) {
+        return ApiResponse.badRequest(res, 'Search query is required');
+      }
+
+      // Verify wallet belongs to user
+      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user.userId);
+      if (!wallet) {
+        return ApiResponse.notFound(res, 'Wallet not found');
+      }
+
+      const options = {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        sortBy,
+        sortOrder
+      };
+
+      const result = await this.transactionModel.search(walletId, query.trim(), options);
+
+      return ApiResponse.success(res, 'Transaction search completed', {
+        transactions: result.transactions,
+        pagination: result.pagination,
+        searchQuery: query
+      });
+    } catch (error) {
+      logger.error('Error searching transactions:', error);
+      return ApiResponse.internalServerError(res, 'Failed to search transactions');
+    }
+  }
+
+  // Get transactions by date range
+  async getTransactionsByDateRange(req, res) {
+    try {
+      const { walletId } = req.params;
+      const { startDate, endDate } = req.query;
+      const {
+        page = 1,
+        limit = 10,
+        sortBy = 'createdAt',
+        sortOrder = 'desc'
+      } = req.query;
+
+      if (!startDate || !endDate) {
+        return ApiResponse.badRequest(res, 'Start date and end date are required');
+      }
+
+      // Verify wallet belongs to user
+      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user.userId);
+      if (!wallet) {
+        return ApiResponse.notFound(res, 'Wallet not found');
+      }
+
+      const options = {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        sortBy,
+        sortOrder
+      };
+
+      const result = await this.transactionModel.findByDateRange(walletId, startDate, endDate, options);
+
+      return ApiResponse.success(res, 'Transactions by date range retrieved successfully', {
+        transactions: result.transactions,
+        pagination: result.pagination,
+        dateRange: { startDate, endDate }
+      });
+    } catch (error) {
+      logger.error('Error getting transactions by date range:', error);
+      return ApiResponse.internalServerError(res, 'Failed to retrieve transactions by date range');
+    }
+  }
+
+  // Get transactions by labels
+  async getTransactionsByLabels(req, res) {
+    try {
+      const { walletId } = req.params;
+      const { labels } = req.query;
+      const {
+        page = 1,
+        limit = 10,
+        sortBy = 'createdAt',
+        sortOrder = 'desc'
+      } = req.query;
+
+      if (!labels || !labels.trim()) {
+        return ApiResponse.badRequest(res, 'Labels are required');
+      }
+
+      // Verify wallet belongs to user
+      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user.userId);
+      if (!wallet) {
+        return ApiResponse.notFound(res, 'Wallet not found');
+      }
+
+      const labelIds = labels.split(',').map(id => id.trim());
+
+      const options = {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        sortBy,
+        sortOrder
+      };
+
+      const result = await this.transactionModel.findByLabels(walletId, labelIds, options);
+
+      return ApiResponse.success(res, 'Transactions by labels retrieved successfully', {
+        transactions: result.transactions,
+        pagination: result.pagination,
+        labels: labelIds
+      });
+    } catch (error) {
+      logger.error('Error getting transactions by labels:', error);
+      return ApiResponse.internalServerError(res, 'Failed to retrieve transactions by labels');
+    }
+  }
+
+  // Bulk update transactions
+  async bulkUpdateTransactions(req, res) {
+    try {
+      const { walletId } = req.params;
+      const { updates } = req.body;
+
+      if (!Array.isArray(updates) || updates.length === 0) {
+        return ApiResponse.badRequest(res, 'Updates array is required');
+      }
+
+      // Verify wallet belongs to user
+      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user.userId);
+      if (!wallet) {
+        return ApiResponse.notFound(res, 'Wallet not found');
+      }
+
+      const modifiedCount = await this.transactionModel.bulkUpdate(walletId, updates);
+
+      return ApiResponse.success(res, 'Transactions updated successfully', {
+        modifiedCount
+      });
+    } catch (error) {
+      logger.error('Error bulk updating transactions:', error);
+      return ApiResponse.internalServerError(res, 'Failed to bulk update transactions');
+    }
+  }
+
+  // Bulk delete transactions
+  async bulkDeleteTransactions(req, res) {
+    try {
+      const { walletId } = req.params;
+      const { transactionIds } = req.body;
+
+      if (!Array.isArray(transactionIds) || transactionIds.length === 0) {
+        return ApiResponse.badRequest(res, 'Transaction IDs array is required');
+      }
+
+      // Verify wallet belongs to user
+      const wallet = await this.walletModel.findByIdAndUserId(walletId, req.user.userId);
+      if (!wallet) {
+        return ApiResponse.notFound(res, 'Wallet not found');
+      }
+
+      const deletedCount = await this.transactionModel.bulkDelete(walletId, transactionIds);
+
+      return ApiResponse.success(res, 'Transactions deleted successfully', {
+        deletedCount
+      });
+    } catch (error) {
+      logger.error('Error bulk deleting transactions:', error);
+      return ApiResponse.internalServerError(res, 'Failed to bulk delete transactions');
+    }
+  }
 }
 
 module.exports = new TransactionController();

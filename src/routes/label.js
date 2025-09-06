@@ -352,4 +352,60 @@ router.delete('/:labelId', requireUserOrAdmin, LabelController.deleteLabel);
  */
 router.patch('/:labelId/set-default', requireUserOrAdmin, LabelController.setDefaultLabel);
 
+/**
+ * @swagger
+ * /api/v1/labels/category/{categoryId}:
+ *   get:
+ *     summary: Get labels by category ID
+ *     tags: [Label Management]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: categoryId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Category ID
+ *     responses:
+ *       200:
+ *         description: Labels retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiResponse'
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Category not found
+ */
+router.get('/category/:categoryId', requireUserOrAdmin, LabelController.getLabelsByCategoryId);
+
+/**
+ * @swagger
+ * /api/v1/labels/category-name/{category}:
+ *   get:
+ *     summary: Get labels by category name (legacy)
+ *     tags: [Label Management]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: category
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Category name
+ *     responses:
+ *       200:
+ *         description: Labels retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiResponse'
+ *       401:
+ *         description: Unauthorized
+ */
+router.get('/category-name/:category', requireUserOrAdmin, LabelController.getLabelsByCategory);
+
 module.exports = router;

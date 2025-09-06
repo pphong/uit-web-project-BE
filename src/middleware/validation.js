@@ -162,87 +162,55 @@ const walletSchemas = {
 const transactionSchemas = {
   // Create transaction
   createTransaction: Joi.object({
-    walletId: commonSchemas.objectId,
-    type: Joi.string().valid('income', 'expense', 'transfer').required(),
     amount: Joi.number().precision(2).positive().required(),
     currency: Joi.string().length(3).uppercase().default('VND'),
-    description: Joi.string().max(500).required(),
-    category: Joi.string().min(1).max(100).required(),
+    description: Joi.string().min(1).max(500).required(),
+    receipt: Joi.string().uri().optional().allow(''),
     labels: Joi.array().items(commonSchemas.objectId).max(10).optional(),
-    date: Joi.date().max('now').default('now'),
-    notes: Joi.string().max(1000).optional(),
-    status: Joi.string().valid('pending', 'completed', 'cancelled').default('completed'),
-    // Transfer specific fields
-    fromWalletId: commonSchemas.objectId.when('type', {
-      is: 'transfer',
-      then: Joi.required(),
-      otherwise: Joi.optional()
-    }),
-    fromBudgetId: commonSchemas.objectId.optional(),
-    toWalletId: commonSchemas.objectId.when('type', {
-      is: 'transfer',
-      then: Joi.required(),
-      otherwise: Joi.optional()
-    }),
+    receiver: Joi.string().max(200).optional().allow(''),
   }),
 
   // Update transaction
   updateTransaction: Joi.object({
-    type: Joi.string().valid('income', 'expense', 'transfer').optional(),
     amount: Joi.number().precision(2).positive().optional(),
     currency: Joi.string().length(3).uppercase().optional(),
-    description: Joi.string().max(500).optional(),
-    category: Joi.string().min(1).max(100).optional(),
+    description: Joi.string().min(1).max(500).optional(),
+    receipt: Joi.string().uri().optional().allow(''),
     labels: Joi.array().items(commonSchemas.objectId).max(10).optional(),
-    date: Joi.date().max('now').optional(),
-    notes: Joi.string().max(1000).optional(),
-    status: Joi.string().valid('pending', 'completed', 'cancelled').optional(),
-    // Transfer specific fields
-    fromWalletId: commonSchemas.objectId.optional(),
-    fromBudgetId: commonSchemas.objectId.optional(),
-    toWalletId: commonSchemas.objectId.optional(),
+    receiver: Joi.string().max(200).optional().allow(''),
   }),
 
   // Transaction filters
   transactionFilters: Joi.object({
-    walletId: commonSchemas.objectId.optional(),
-    type: Joi.string().valid('income', 'expense', 'transfer').optional(),
-    category: Joi.string().optional(),
-    labels: Joi.array().items(commonSchemas.objectId).optional(),
-    minAmount: Joi.number().precision(2).min(0).optional(),
-    maxAmount: Joi.number().precision(2).min(0).optional(),
+    search: Joi.string().max(100).optional(),
     startDate: Joi.date().iso().optional(),
     endDate: Joi.date().iso().min(Joi.ref('startDate')).optional(),
-    status: Joi.string().valid('pending', 'completed', 'cancelled').optional(),
+    minAmount: Joi.number().precision(2).min(0).optional(),
+    maxAmount: Joi.number().precision(2).min(0).optional(),
+    currency: Joi.string().length(3).uppercase().optional(),
+    labels: Joi.string().optional(), // Comma-separated label IDs
   }).concat(commonSchemas.pagination),
-};
 
-/**
- * Budget and alert validation schemas
- */
-const budgetSchemas = {
-  // Create budget
-  createBudget: Joi.object({
-    walletId: commonSchemas.objectId,
-    name: Joi.string().min(1).max(100).required(),
-    amount: Joi.number().precision(2).positive().required(),
-    period: Joi.string().valid('daily', 'weekly', 'monthly', 'yearly').required(),
-    startDate: Joi.date().iso().required(),
-    endDate: Joi.date().iso().min(Joi.ref('startDate')).optional(),
-    categories: Joi.array().items(Joi.string()).optional(),
-    labels: Joi.array().items(Joi.string()).optional(),
-    description: Joi.string().max(500).optional(),
+  // Bulk update transactions
+  bulkUpdateTransactions: Joi.object({
+    updates: Joi.array().items(
+      Joi.object({
+        transactionId: commonSchemas.objectId,
+        data: Joi.object({
+          amount: Joi.number().precision(2).positive().optional(),
+          currency: Joi.string().length(3).uppercase().optional(),
+          description: Joi.string().min(1).max(500).optional(),
+          receipt: Joi.string().uri().optional().allow(''),
+          labels: Joi.array().items(commonSchemas.objectId).max(10).optional(),
+          receiver: Joi.string().max(200).optional().allow(''),
+        }).min(1)
+      })
+    ).min(1).max(100)
   }),
 
-  // Create alert
-  createAlert: Joi.object({
-    walletId: commonSchemas.objectId,
-    name: Joi.string().min(1).max(100).required(),
-    type: Joi.string().valid('expense_limit', 'budget_remaining', 'no_expense').required(),
-    threshold: Joi.number().precision(2).positive().required(),
-    period: Joi.string().valid('daily', 'weekly', 'monthly', 'yearly').required(),
-    isActive: Joi.boolean().default(true),
-    description: Joi.string().max(500).optional(),
+  // Bulk delete transactions
+  bulkDeleteTransactions: Joi.object({
+    transactionIds: Joi.array().items(commonSchemas.objectId).min(1).max(100).required()
   }),
 };
 
@@ -253,15 +221,46 @@ const labelSchemas = {
   // Create label
   createLabel: Joi.object({
     name: Joi.string().min(1).max(50).required(),
+    categoryId: commonSchemas.objectId.optional(),
     color: Joi.string().pattern(/^#[0-9A-F]{6}$/i).optional(),
     description: Joi.string().max(200).optional(),
+    icon: Joi.string().max(50).optional(),
+    isDefault: Joi.boolean().optional(),
   }),
 
   // Update label
   updateLabel: Joi.object({
     name: Joi.string().min(1).max(50).optional(),
+    categoryId: commonSchemas.objectId.optional(),
     color: Joi.string().pattern(/^#[0-9A-F]{6}$/i).optional(),
     description: Joi.string().max(200).optional(),
+    icon: Joi.string().max(50).optional(),
+    isActive: Joi.boolean().optional(),
+  }),
+};
+
+/**
+ * Category validation schemas
+ */
+const categorySchemas = {
+  // Create category
+  createCategory: Joi.object({
+    name: Joi.string().min(1).max(100).required(),
+    type: Joi.string().valid('expense', 'income').required(),
+    description: Joi.string().max(500).optional(),
+    color: Joi.string().pattern(/^#[0-9A-F]{6}$/i).optional(),
+    icon: Joi.string().max(50).optional(),
+    isDefault: Joi.boolean().optional(),
+  }),
+
+  // Update category
+  updateCategory: Joi.object({
+    name: Joi.string().min(1).max(100).optional(),
+    type: Joi.string().valid('expense', 'income').optional(),
+    description: Joi.string().max(500).optional(),
+    color: Joi.string().pattern(/^#[0-9A-F]{6}$/i).optional(),
+    icon: Joi.string().max(50).optional(),
+    isActive: Joi.boolean().optional(),
   }),
 };
 
@@ -271,6 +270,6 @@ module.exports = {
   userSchemas,
   walletSchemas,
   transactionSchemas,
-  budgetSchemas,
   labelSchemas,
+  categorySchemas
 };

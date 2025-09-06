@@ -12,6 +12,7 @@ const path = require('path');
 const database = require('./config/database');
 const logger = require('./utils/logger');
 const ApiResponse = require('./utils/response');
+const NotificationService = require('./services/NotificationService');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -19,8 +20,7 @@ const userRoutes = require('./routes/user');
 const walletRoutes = require('./routes/wallet');
 const transactionRoutes = require('./routes/transaction');
 const labelRoutes = require('./routes/label');
-const budgetRoutes = require('./routes/budget');
-const alertRoutes = require('./routes/alert');
+const categoryRoutes = require('./routes/category');
 const docsRoutes = require('./routes/docs');
 
 // Import models for index creation
@@ -28,6 +28,7 @@ const User = require('./models/User');
 const Wallet = require('./models/Wallet');
 const Transaction = require('./models/Transaction');
 const Label = require('./models/Label');
+const Category = require('./models/Category');
 
 const app = express();
 
@@ -127,8 +128,7 @@ app.use(`${apiPrefix}/users`, userRoutes);
 app.use(`${apiPrefix}/wallets`, walletRoutes);
 app.use(`${apiPrefix}/transactions`, transactionRoutes);
 app.use(`${apiPrefix}/labels`, labelRoutes);
-app.use(`${apiPrefix}/budgets`, budgetRoutes);
-app.use(`${apiPrefix}/alerts`, alertRoutes);
+app.use(`${apiPrefix}/categories`, categoryRoutes);
 
 // API Documentation (Swagger UI)
 app.use('/docs', docsRoutes);
@@ -145,8 +145,7 @@ app.get(`${apiPrefix}/docs`, (req, res) => {
       wallets: `${apiPrefix}/wallets`,
       transactions: `${apiPrefix}/transactions`,
       labels: `${apiPrefix}/labels`,
-      budgets: `${apiPrefix}/budgets`,
-      alerts: `${apiPrefix}/alerts`,
+      categories: `${apiPrefix}/categories`,
     },
     documentation: 'API documentation will be available here',
   });
@@ -216,19 +215,29 @@ async function initializeApp() {
       User.createIndexes(),
       Wallet.createIndexes(),
       Transaction.createIndexes(),
-      Label.createIndexes()
+      Label.createIndexes(),
+      Category.createIndexes()
     ]);
     
     logger.info('✅ Database indexes created successfully');
     
     const port = process.env.PORT || 3000;
-    app.listen(port, () => {
+    const server = app.listen(port, () => {
       logger.info(`🚀 Server running on port ${port}`);
       logger.info(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-      logger.info(`🔗 Health check: http://localhost:${port}/health`);
+      logger.info(` Health check: http://localhost:${port}/health`);
       logger.info(`📚 API docs: http://localhost:${port}/docs`);
       logger.info(`🔌 API endpoints: http://localhost:${port}/api`);
+      logger.info(`🔌 WebSocket: ws://localhost:${port}/ws`);
     });
+
+    // Initialize WebSocket service
+    try {
+      await NotificationService.initialize(server);
+      logger.info('✅ WebSocket service initialized successfully');
+    } catch (error) {
+      logger.error('❌ Failed to initialize WebSocket service:', error);
+    }
   } catch (error) {
     logger.error('❌ Failed to initialize application:', error);
     process.exit(1);
@@ -239,6 +248,7 @@ async function initializeApp() {
 process.on('SIGINT', async () => {
   logger.info('🛑 Received SIGINT, shutting down gracefully...');
   try {
+    await NotificationService.close();
     await database.closeConnection();
     logger.info('✅ Graceful shutdown completed');
     process.exit(0);
@@ -251,6 +261,7 @@ process.on('SIGINT', async () => {
 process.on('SIGTERM', async () => {
   logger.info('🛑 Received SIGTERM, shutting down gracefully...');
   try {
+    await NotificationService.close();
     await database.closeConnection();
     logger.info('✅ Graceful shutdown completed');
     process.exit(0);

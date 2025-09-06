@@ -1,10 +1,12 @@
 const Label = require('../models/Label');
+const Category = require('../models/Category');
 const ApiResponse = require('../utils/response');
 const logger = require('../utils/logger');
 
 class LabelController {
   constructor() {
     this.labelModel = Label;
+    this.categoryModel = Category;
   }
 
   // Get user labels
@@ -116,7 +118,20 @@ class LabelController {
         return ApiResponse.conflict(res, 'Label name already exists for this user');
       }
 
+      // If categoryId is provided, validate it exists and belongs to user
+      if (labelData.categoryId) {
+        const category = await this.categoryModel.findByIdAndUserId(labelData.categoryId, userId);
+        if (!category) {
+          return ApiResponse.badRequest(res, 'Invalid category ID');
+        }
+      }
+
       const label = await this.labelModel.create(labelData);
+
+      // Increment label count in category if categoryId is provided
+      if (labelData.categoryId) {
+        await this.categoryModel.incrementLabelCount(labelData.categoryId);
+      }
 
       return ApiResponse.created(res, 'Label created successfully', { label });
     } catch (error) {
@@ -145,6 +160,30 @@ class LabelController {
         const existingLabel = await this.labelModel.findByNameAndUserId(updateData.name, userId);
         if (existingLabel && existingLabel._id.toString() !== labelId) {
           return ApiResponse.conflict(res, 'Label name already exists for this user');
+        }
+      }
+
+      // If categoryId is being updated, validate it exists and belongs to user
+      if (updateData.categoryId !== undefined) {
+        if (updateData.categoryId) {
+          const category = await this.categoryModel.findByIdAndUserId(updateData.categoryId, userId);
+          if (!category) {
+            return ApiResponse.badRequest(res, 'Invalid category ID');
+          }
+        }
+
+        // Handle category change
+        const oldCategoryId = label.categoryId;
+        const newCategoryId = updateData.categoryId;
+
+        if (oldCategoryId && oldCategoryId.toString() !== newCategoryId) {
+          // Decrement old category count
+          await this.categoryModel.decrementLabelCount(oldCategoryId);
+        }
+
+        if (newCategoryId && (!oldCategoryId || oldCategoryId.toString() !== newCategoryId)) {
+          // Increment new category count
+          await this.categoryModel.incrementLabelCount(newCategoryId);
         }
       }
 
@@ -184,6 +223,11 @@ class LabelController {
       const success = await this.labelModel.deleteById(labelId);
       if (!success) {
         return ApiResponse.internalServerError(res, 'Failed to delete label');
+      }
+
+      // Decrement label count in category if categoryId exists
+      if (label.categoryId) {
+        await this.categoryModel.decrementLabelCount(label.categoryId);
       }
 
       return ApiResponse.success(res, 'Label deleted successfully');
@@ -254,7 +298,35 @@ class LabelController {
     }
   }
 
-  // Get labels by category
+  // Get labels by category ID
+  async getLabelsByCategoryId(req, res) {
+    try {
+      const userId = req.user.userId;
+      const { categoryId } = req.params;
+
+      // Validate category exists and belongs to user
+      const category = await this.categoryModel.findByIdAndUserId(categoryId, userId);
+      if (!category) {
+        return ApiResponse.notFound(res, 'Category not found');
+      }
+
+      const labels = await this.labelModel.findByCategoryId(userId, categoryId);
+
+      return ApiResponse.success(res, `Labels for category "${category.name}" retrieved successfully`, {
+        labels,
+        category: {
+          _id: category._id,
+          name: category.name,
+          type: category.type
+        }
+      });
+    } catch (error) {
+      logger.error('Error getting labels by category ID:', error);
+      return ApiResponse.internalServerError(res, 'Failed to retrieve labels by category');
+    }
+  }
+
+  // Get labels by category (legacy method for backward compatibility)
   async getLabelsByCategory(req, res) {
     try {
       const userId = req.user.userId;

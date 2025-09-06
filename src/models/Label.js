@@ -20,6 +20,8 @@ class Label {
       await collection.createIndex({ userId: 1, name: 1 }, { unique: true });
       await collection.createIndex({ userId: 1, isDefault: 1 });
       await collection.createIndex({ userId: 1, isActive: 1 });
+      await collection.createIndex({ categoryId: 1 });
+      await collection.createIndex({ userId: 1, categoryId: 1 });
       await collection.createIndex({ usageCount: -1 });
       await collection.createIndex({ lastUsedAt: -1 });
       logger.info('Label indexes created successfully');
@@ -35,6 +37,7 @@ class Label {
 
       const label = {
         userId: new ObjectId(labelData.userId),
+        categoryId: labelData.categoryId ? new ObjectId(labelData.categoryId) : null,
         name: labelData.name.trim(),
         color: labelData.color || '#3B82F6',
         description: labelData.description || '',
@@ -45,7 +48,6 @@ class Label {
         lastUsedAt: null,
         metadata: {
           createdFrom: labelData.metadata?.createdFrom || 'manual',
-          category: labelData.metadata?.category || 'general',
           priority: labelData.metadata?.priority || 'medium',
         },
         createdAt: new Date(),
@@ -309,7 +311,26 @@ class Label {
     }
   }
 
-  // Get labels by category
+  // Get labels by category ID
+  async findByCategoryId(userId, categoryId) {
+    try {
+      const collection = this.getCollection();
+
+      return await collection
+        .find({
+          userId: new ObjectId(userId),
+          categoryId: new ObjectId(categoryId),
+          isActive: true,
+        })
+        .sort({ name: 1 })
+        .toArray();
+    } catch (error) {
+      logger.error('Error finding labels by category ID:', error);
+      throw error;
+    }
+  }
+
+  // Get labels by category (legacy method for backward compatibility)
   async findByCategory(userId, category) {
     try {
       const collection = this.getCollection();
@@ -376,69 +397,112 @@ class Label {
   }
 
   // Create default labels for user
-  async createDefaultLabels(userId) {
+  async createDefaultLabels(userId, categoryMap = {}) {
     try {
       const collection = this.getCollection();
 
       const defaultLabels = [
         {
-          name: 'Food & Dining',
+          name: 'Restaurants',
           color: '#EF4444',
           icon: 'food',
-          description: 'Restaurants, groceries, and dining expenses',
-          metadata: { category: 'expense', priority: 'high' },
+          description: 'Dining out and restaurant expenses',
+          categoryType: 'expense',
         },
         {
-          name: 'Transportation',
+          name: 'Groceries',
+          color: '#F97316',
+          icon: 'shopping-cart',
+          description: 'Grocery shopping and food items',
+          categoryType: 'expense',
+        },
+        {
+          name: 'Public Transport',
           color: '#3B82F6',
+          icon: 'bus',
+          description: 'Bus, train, and public transport',
+          categoryType: 'expense',
+        },
+        {
+          name: 'Fuel',
+          color: '#1D4ED8',
           icon: 'car',
-          description: 'Fuel, public transport, and vehicle expenses',
-          metadata: { category: 'expense', priority: 'medium' },
+          description: 'Gas and fuel expenses',
+          categoryType: 'expense',
         },
         {
-          name: 'Shopping',
+          name: 'Clothing',
           color: '#8B5CF6',
-          icon: 'shopping',
-          description: 'Clothing, electronics, and retail purchases',
-          metadata: { category: 'expense', priority: 'medium' },
+          icon: 'shirt',
+          description: 'Clothing and fashion items',
+          categoryType: 'expense',
         },
         {
-          name: 'Entertainment',
+          name: 'Electronics',
+          color: '#7C3AED',
+          icon: 'smartphone',
+          description: 'Electronics and gadgets',
+          categoryType: 'expense',
+        },
+        {
+          name: 'Movies & Shows',
           color: '#10B981',
-          icon: 'entertainment',
-          description: 'Movies, games, and leisure activities',
-          metadata: { category: 'expense', priority: 'low' },
+          icon: 'film',
+          description: 'Entertainment and streaming',
+          categoryType: 'expense',
         },
         {
-          name: 'Healthcare',
+          name: 'Games',
+          color: '#059669',
+          icon: 'gamepad',
+          description: 'Gaming and recreational activities',
+          categoryType: 'expense',
+        },
+        {
+          name: 'Medical',
           color: '#F59E0B',
-          icon: 'health',
-          description: 'Medical expenses and healthcare costs',
-          metadata: { category: 'expense', priority: 'high' },
+          icon: 'heart',
+          description: 'Medical expenses and healthcare',
+          categoryType: 'expense',
         },
         {
-          name: 'Salary',
+          name: 'Regular Salary',
           color: '#059669',
           icon: 'briefcase',
           description: 'Regular income from employment',
-          metadata: { category: 'income', priority: 'high' },
+          categoryType: 'income',
         },
         {
-          name: 'Freelance',
+          name: 'Freelance Work',
           color: '#7C3AED',
-          icon: 'briefcase',
+          icon: 'laptop',
           description: 'Additional income from freelance work',
-          metadata: { category: 'income', priority: 'medium' },
+          categoryType: 'income',
+        },
+        {
+          name: 'Investment Returns',
+          color: '#0D9488',
+          icon: 'trending-up',
+          description: 'Investment returns and dividends',
+          categoryType: 'income',
         },
       ];
 
       const labelsToInsert = defaultLabels.map(label => ({
-        ...label,
+        name: label.name,
+        color: label.color,
+        icon: label.icon,
+        description: label.description,
+        categoryId: categoryMap[label.categoryType] || null,
         userId: new ObjectId(userId),
         isActive: true,
         isDefault: false,
         usageCount: 0,
         lastUsedAt: null,
+        metadata: {
+          createdFrom: 'system',
+          priority: 'medium',
+        },
         createdAt: new Date(),
         updatedAt: new Date(),
       }));
