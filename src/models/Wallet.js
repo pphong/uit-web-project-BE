@@ -33,11 +33,11 @@ class Wallet {
       const collection = this.getCollection();
       
       // If this is the first wallet, make it default
-      const existingWallets = await collection.countDocuments({ userId: ObjectId.createFromHexString(walletData.userId) });
+      const existingWallets = await collection.countDocuments({ userId: new ObjectId(String(walletData.userId)) });
       const isDefault = existingWallets === 0;
       
       const wallet = {
-        userId: ObjectId.createFromHexString(walletData.userId),
+        userId: new ObjectId(String(walletData.userId)),
         name: walletData.name,
         balance: walletData.balance || 0,
         currency: walletData.currency || 'VND',
@@ -70,7 +70,7 @@ class Wallet {
   async findById(walletId) {
     try {
       const collection = this.getCollection();
-      return await collection.findOne({ _id: ObjectId.createFromHexString(walletId) });
+      return await collection.findOne({ _id: new ObjectId(String(walletId)) });
     } catch (error) {
       logger.error('Error finding wallet by ID:', error);
       throw error;
@@ -82,8 +82,8 @@ class Wallet {
     try {
       const collection = this.getCollection();
       return await collection.findOne({
-        _id: ObjectId.createFromHexString(walletId),
-        userId: ObjectId.createFromHexString(userId)
+        _id: new ObjectId(String(walletId)),
+        userId: new ObjectId(String(userId))
       });
     } catch (error) {
       logger.error('Error finding wallet by ID and user ID:', error);
@@ -96,7 +96,7 @@ class Wallet {
     try {
       const collection = this.getCollection();
       return await collection.findOne({
-        userId: ObjectId.createFromHexString(userId),
+        userId: new ObjectId(String(userId)),
         isDefault: true,
         isActive: true
       });
@@ -158,7 +158,7 @@ class Wallet {
       updateData.updatedAt = new Date();
       
       const result = await collection.updateOne(
-        { _id: ObjectId.createFromHexString(walletId) },
+        { _id: new ObjectId(String(walletId)) },
         { $set: updateData }
       );
       
@@ -173,7 +173,7 @@ class Wallet {
   async deleteById(walletId) {
     try {
       const collection = this.getCollection();
-      const result = await collection.deleteOne({ _id: ObjectId.createFromHexString(walletId) });
+      const result = await collection.deleteOne({ _id: new ObjectId(String(walletId)) });
       return result.deletedCount > 0;
     } catch (error) {
       logger.error('Error deleting wallet:', error);
@@ -188,13 +188,13 @@ class Wallet {
       
       // Remove default from all other wallets
       await collection.updateMany(
-        { userId: ObjectId.createFromHexString(userId) },
+        { userId: new ObjectId(String(userId)) },
         { $set: { isDefault: false } }
       );
       
       // Set this wallet as default
       const result = await collection.updateOne(
-        { _id: ObjectId.createFromHexString(walletId) },
+        { _id: new ObjectId(String(walletId)) },
         { $set: { isDefault: true, updatedAt: new Date() } }
       );
       
@@ -211,7 +211,7 @@ class Wallet {
       const collection = this.getCollection();
       
       const result = await collection.updateOne(
-        { _id: ObjectId.createFromHexString(walletId) },
+        { _id: new ObjectId(String(walletId)) },
         {
           $inc: { balance: amount },
           $set: {
@@ -234,7 +234,7 @@ class Wallet {
       const collection = this.getCollection();
       
       const result = await collection.updateOne(
-        { _id: ObjectId.createFromHexString(walletId) },
+        { _id: new ObjectId(String(walletId)) },
         {
           $inc: { balance: -amount },
           $set: {
@@ -263,7 +263,7 @@ class Wallet {
         await session.withTransaction(async () => {
           // Deduct from source wallet
           await collection.updateOne(
-            { _id: ObjectId.createFromHexString(fromWalletId) },
+            { _id: new ObjectId(String(fromWalletId)) },
             {
               $inc: { balance: -amount },
               $set: {
@@ -276,7 +276,7 @@ class Wallet {
           
           // Add to destination wallet
           await collection.updateOne(
-            { _id: ObjectId.createFromHexString(toWalletId) },
+            { _id: new ObjectId(String(toWalletId)) },
             {
               $inc: { balance: amount },
               $set: {
@@ -304,7 +304,7 @@ class Wallet {
       const collection = this.getCollection();
       
       const stats = await collection.aggregate([
-        { $match: { userId: ObjectId.createFromHexString(userId) } },
+        { $match: { userId: new ObjectId(String(userId)) } },
         {
           $group: {
             _id: null,
@@ -339,7 +339,7 @@ class Wallet {
     try {
       const collection = this.getCollection();
       return await collection.find({
-        userId: ObjectId.createFromHexString(userId),
+        userId: new ObjectId(String(userId)),
         currency: currency,
         isActive: true
       }).toArray();
@@ -353,7 +353,7 @@ class Wallet {
   async hasSufficientBalance(walletId, amount) {
     try {
       const collection = this.getCollection();
-      const wallet = await collection.findOne({ _id: ObjectId.createFromHexString(walletId) });
+      const wallet = await collection.findOne({ _id: new ObjectId(String(walletId)) });
       
       if (!wallet) {
         return false;
