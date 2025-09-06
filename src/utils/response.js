@@ -1,3 +1,5 @@
+const { ObjectId } = require('mongodb');
+
 /**
  * Standardized API Response Utility
  * Provides consistent response format for all API endpoints
@@ -165,6 +167,27 @@ class ApiResponse {
         hasPrev: page > 1,
       },
     };
+  }
+
+  /**
+   * Validate ObjectId and return error response if invalid
+   * @param {Object} res - Express response object
+   * @param {string} id - ID to validate
+   * @param {string} fieldName - Field name for error message
+   * @returns {boolean} true if valid, false if invalid (response sent)
+   */
+  static validateObjectId(res, id, fieldName = 'ID') {
+    if (!id) {
+      this.badRequest(res, `${fieldName} is required`);
+      return false;
+    }
+
+    if (!ObjectId.isValid(id)) {
+      this.badRequest(res, `Invalid ${fieldName} format`);
+      return false;
+    }
+
+    return true;
   }
 }
 

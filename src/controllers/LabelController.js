@@ -94,6 +94,11 @@ class LabelController {
       const { labelId } = req.params;
       const userId = req.user._id;
 
+      // Validate ObjectId
+      if (!ApiResponse.validateObjectId(res, labelId, 'Label ID')) {
+        return;
+      }
+
       const label = await this.labelModel.findByIdAndUserId(labelId, userId);
       if (!label) {
         return ApiResponse.notFound(res, 'Label not found');
@@ -112,26 +117,27 @@ class LabelController {
       const userId = req.user._id;
       const labelData = { ...req.body, userId };
 
+      // Validate categoryId ObjectId
+      if (!ApiResponse.validateObjectId(res, labelData.categoryId, 'Category ID')) {
+        return;
+      }
+
       // Check if label name already exists for this user
       const existingLabel = await this.labelModel.findByNameAndUserId(labelData.name, userId);
       if (existingLabel) {
         return ApiResponse.conflict(res, 'Label name already exists for this user');
       }
 
-      // If categoryId is provided, validate it exists and belongs to user
-      if (labelData.categoryId) {
-        const category = await this.categoryModel.findByIdAndUserId(labelData.categoryId, userId);
-        if (!category) {
-          return ApiResponse.badRequest(res, 'Invalid category ID');
-        }
+      // Validate categoryId exists and belongs to user
+      const category = await this.categoryModel.findByIdAndUserId(labelData.categoryId, userId);
+      if (!category) {
+        return ApiResponse.badRequest(res, 'Invalid category ID');
       }
 
       const label = await this.labelModel.create(labelData);
 
-      // Increment label count in category if categoryId is provided
-      if (labelData.categoryId) {
-        await this.categoryModel.incrementLabelCount(labelData.categoryId);
-      }
+      // Increment label count in category
+      await this.categoryModel.incrementLabelCount(labelData.categoryId);
 
       return ApiResponse.created(res, 'Label created successfully', { label });
     } catch (error) {
@@ -149,6 +155,11 @@ class LabelController {
       const { labelId } = req.params;
       const userId = req.user._id;
       const updateData = req.body;
+
+      // Validate ObjectId
+      if (!ApiResponse.validateObjectId(res, labelId, 'Label ID')) {
+        return;
+      }
 
       const label = await this.labelModel.findByIdAndUserId(labelId, userId);
       if (!label) {
@@ -206,6 +217,11 @@ class LabelController {
     try {
       const { labelId } = req.params;
       const userId = req.user._id;
+
+      // Validate ObjectId
+      if (!ApiResponse.validateObjectId(res, labelId, 'Label ID')) {
+        return;
+      }
 
       const label = await this.labelModel.findByIdAndUserId(labelId, userId);
       if (!label) {
@@ -304,6 +320,11 @@ class LabelController {
       const userId = req.user._id;
       const { categoryId } = req.params;
 
+      // Validate ObjectId
+      if (!ApiResponse.validateObjectId(res, categoryId, 'Category ID')) {
+        return;
+      }
+
       // Validate category exists and belongs to user
       const category = await this.categoryModel.findByIdAndUserId(categoryId, userId);
       if (!category) {
@@ -343,6 +364,40 @@ class LabelController {
       return ApiResponse.internalServerError(res, 'Failed to retrieve labels by category');
     }
   }
+
+  // Get global labels (labels without category)
+  async getGlobalLabels(req, res) {
+    try {
+      const {
+        page = 1,
+        limit = 10,
+        isActive = null,
+        search = '',
+        sortBy = 'name',
+        sortOrder = 'asc'
+      } = req.query;
+
+      const options = {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        isActive: isActive === null ? null : isActive === 'true',
+        search,
+        sortBy,
+        sortOrder
+      };
+
+      const result = await this.labelModel.findGlobalLabels(options);
+
+      return ApiResponse.success(res, 'Global labels retrieved successfully', {
+        labels: result.labels,
+        pagination: result.pagination
+      });
+    } catch (error) {
+      logger.error('Error getting global labels:', error);
+      return ApiResponse.internalServerError(res, 'Failed to retrieve global labels');
+    }
+  }
+
 }
 
 module.exports = LabelController;

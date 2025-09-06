@@ -37,7 +37,7 @@ class Label {
 
       const label = {
         userId: new ObjectId(labelData.userId),
-        categoryId: labelData.categoryId ? new ObjectId(labelData.categoryId) : null,
+        categoryId: new ObjectId(labelData.categoryId),
         name: labelData.name.trim(),
         color: labelData.color || '#3B82F6',
         description: labelData.description || '',
@@ -548,6 +548,58 @@ class Label {
       throw error;
     }
   }
+
+  // Find global labels (labels without category)
+  async findGlobalLabels(options = {}) {
+    try {
+      const collection = this.getCollection();
+      const {
+        page = 1,
+        limit = 10,
+        isActive = null,
+        search = '',
+        sortBy = 'name',
+        sortOrder = 'asc',
+      } = options;
+
+      const skip = (page - 1) * limit;
+      const sort = { [sortBy]: sortOrder === 'desc' ? -1 : 1 };
+
+      // Build filter for global labels (categoryId is null, no userId filter)
+      const filter = { 
+        categoryId: null
+      };
+      
+      if (isActive !== null) {
+        filter.isActive = isActive;
+      }
+      if (search) {
+        filter.$or = [
+          { name: { $regex: search, $options: 'i' } },
+          { description: { $regex: search, $options: 'i' } },
+        ];
+      }
+
+      const [labels, total] = await Promise.all([
+        collection.find(filter).sort(sort).skip(skip).limit(limit).toArray(),
+        collection.countDocuments(filter),
+      ]);
+
+      return {
+        labels,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit),
+        },
+      };
+    } catch (error) {
+      logger.error('Error finding global labels:', error);
+      throw error;
+    }
+  }
+
 }
 
 module.exports = Label;

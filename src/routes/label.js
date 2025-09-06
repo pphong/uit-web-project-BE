@@ -161,6 +161,63 @@ router.get('/recently-used', requireUserOrAdmin, (req, res) => labelController.g
 
 /**
  * @swagger
+ * /api/v1/labels/global:
+ *   get:
+ *     summary: Get global labels (labels without category)
+ *     tags: [Label Management]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of labels per page
+ *       - in: query
+ *         name: isActive
+ *         schema:
+ *           type: boolean
+ *         description: Filter by active status
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search by name or description
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [name, usageCount, createdAt]
+ *           default: name
+ *         description: Sort field
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: asc
+ *         description: Sort order
+ *     responses:
+ *       200:
+ *         description: Global labels retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiResponse'
+ *       401:
+ *         description: Unauthorized
+ */
+router.get('/global', requireUserOrAdmin, (req, res) => labelController.getGlobalLabels(req, res));
+
+/**
+ * @swagger
  * /api/v1/labels/{labelId}:
  *   get:
  *     summary: Get label by ID
@@ -206,14 +263,14 @@ router.get('/:labelId', requireUserOrAdmin, (req, res) => labelController.getLab
  *             type: object
  *             required:
  *               - name
- *               - category
+ *               - categoryId
  *             properties:
  *               name:
  *                 type: string
  *                 description: Label name
- *               category:
+ *               categoryId:
  *                 type: string
- *                 description: Label category
+ *                 description: Category ID
  *               color:
  *                 type: string
  *                 description: Label color (hex code)

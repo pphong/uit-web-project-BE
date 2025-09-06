@@ -221,7 +221,7 @@ const labelSchemas = {
   // Create label
   createLabel: Joi.object({
     name: Joi.string().min(1).max(50).required(),
-    categoryId: commonSchemas.objectId.optional(),
+    categoryId: commonSchemas.objectId.required(),
     color: Joi.string().pattern(/^#[0-9A-F]{6}$/i).optional(),
     description: Joi.string().max(200).optional(),
     icon: Joi.string().max(50).optional(),
