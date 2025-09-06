@@ -122,7 +122,7 @@ class Wallet {
       const sort = { [sortBy]: sortOrder === 'desc' ? -1 : 1 };
 
       // Build filter
-      const filter = { userId: ObjectId.createFromHexString(userId) };
+      const filter = { userId: new ObjectId(String(userId)) };
       if (isActive !== null) {
         filter.isActive = isActive;
       }

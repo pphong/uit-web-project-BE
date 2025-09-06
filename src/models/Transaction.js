@@ -62,7 +62,7 @@ class Transaction {
     try {
       const collection = this.getCollection();
       return await collection.findOne({ 
-        _id: new ObjectId(transactionId),
+        _id: new ObjectId(String(transactionId)),
         isDelete: false 
       });
     } catch (error) {
@@ -76,8 +76,8 @@ class Transaction {
     try {
       const collection = this.getCollection();
       return await collection.findOne({
-        _id: new ObjectId(transactionId),
-        walletId: new ObjectId(walletId),
+        _id: new ObjectId(String(transactionId)),
+        walletId: new ObjectId(String(walletId)),
         isDelete: false
       });
     } catch (error) {
@@ -109,7 +109,7 @@ class Transaction {
 
       // Build filter
       const filter = { 
-        walletId: new ObjectId(walletId),
+        walletId: new ObjectId(String(walletId)),
         isDelete: false 
       };
 
@@ -145,7 +145,7 @@ class Transaction {
       }
 
       if (labels && labels.length > 0) {
-        filter.labels = { $in: labels.map(label => new ObjectId(label)) };
+        filter.labels = { $in: labels.map(label => new ObjectId(String(label))) };
       }
 
       const [transactions, total] = await Promise.all([
@@ -176,7 +176,7 @@ class Transaction {
 
       const result = await collection.updateOne(
         { 
-          _id: new ObjectId(transactionId),
+          _id: new ObjectId(String(transactionId)),
           isDelete: false 
         },
         { $set: updateData }
@@ -194,7 +194,7 @@ class Transaction {
     try {
       const collection = this.getCollection();
       const result = await collection.updateOne(
-        { _id: new ObjectId(transactionId) },
+        { _id: new ObjectId(String(transactionId)) },
         { 
           $set: { 
             isDelete: true,
@@ -214,7 +214,7 @@ class Transaction {
   async hardDeleteById(transactionId) {
     try {
       const collection = this.getCollection();
-      const result = await collection.deleteOne({ _id: new ObjectId(transactionId) });
+      const result = await collection.deleteOne({ _id: new ObjectId(String(transactionId)) });
       return result.deletedCount > 0;
     } catch (error) {
       logger.error('Error hard deleting transaction:', error);
@@ -233,7 +233,7 @@ class Transaction {
       } = options;
 
       const matchFilter = { 
-        walletId: new ObjectId(walletId),
+        walletId: new ObjectId(String(walletId)),
         isDelete: false 
       };
 
@@ -295,7 +295,7 @@ class Transaction {
       const sort = { [sortBy]: sortOrder === 'desc' ? -1 : 1 };
 
       const filter = {
-        walletId: new ObjectId(walletId),
+        walletId: new ObjectId(String(walletId)),
         isDelete: false,
         createdAt: {
           $gte: new Date(startDate),
@@ -338,7 +338,7 @@ class Transaction {
       const sort = { [sortBy]: sortOrder === 'desc' ? -1 : 1 };
 
       const filter = {
-        walletId: new ObjectId(walletId),
+        walletId: new ObjectId(String(walletId)),
         isDelete: false,
         $or: [
           { description: { $regex: query, $options: 'i' } },
@@ -373,7 +373,7 @@ class Transaction {
 
       return await collection
         .find({
-          walletId: new ObjectId(walletId),
+          walletId: new ObjectId(String(walletId)),
           isDelete: false
         })
         .sort({ createdAt: -1 })
@@ -393,7 +393,7 @@ class Transaction {
         updateOne: {
           filter: {
             _id: new ObjectId(update.transactionId),
-            walletId: new ObjectId(walletId),
+            walletId: new ObjectId(String(walletId)),
             isDelete: false
           },
           update: {
@@ -419,8 +419,8 @@ class Transaction {
       const collection = this.getCollection();
       const result = await collection.updateMany(
         {
-          _id: { $in: transactionIds.map(id => new ObjectId(id)) },
-          walletId: new ObjectId(walletId),
+          _id: { $in: transactionIds.map(id => new ObjectId(String(id))) },
+          walletId: new ObjectId(String(walletId)),
           isDelete: false
         },
         {
@@ -453,9 +453,9 @@ class Transaction {
       const sort = { [sortBy]: sortOrder === 'desc' ? -1 : 1 };
 
       const filter = {
-        walletId: new ObjectId(walletId),
+        walletId: new ObjectId(String(walletId)),
         isDelete: false,
-        labels: { $in: labelIds.map(id => new ObjectId(id)) }
+        labels: { $in: labelIds.map(id => new ObjectId(String(id))) }
       };
 
       const [transactions, total] = await Promise.all([

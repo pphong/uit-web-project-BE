@@ -75,7 +75,7 @@ class User {
   async findById(userId) {
     try {
       const collection = this.getCollection();
-      const user = await collection.findOne({ _id: new ObjectId(userId) });
+      const user = await collection.findOne({ _id: new ObjectId(String(userId)) });
 
       if (user) {
         const { password, ...userWithoutPassword } = user;
@@ -107,7 +107,7 @@ class User {
       updateData.updatedAt = new Date();
 
       const result = await collection.updateOne(
-        { _id: new ObjectId(userId) },
+        { _id: new ObjectId(String(userId)) },
         { $set: updateData }
       );
 
@@ -122,7 +122,7 @@ class User {
   async deleteById(userId) {
     try {
       const collection = this.getCollection();
-      const result = await collection.deleteOne({ _id: new ObjectId(userId) });
+      const result = await collection.deleteOne({ _id: new ObjectId(String(userId)) });
       return result.deletedCount > 0;
     } catch (error) {
       logger.error('Error deleting user:', error);
@@ -255,7 +255,7 @@ class User {
       if (success) {
         // Reset on successful login
         await collection.updateOne(
-          { _id: new ObjectId(userId) },
+          { _id: new ObjectId(String(userId)) },
           {
             $set: {
               loginAttempts: 0,
@@ -266,13 +266,13 @@ class User {
         );
       } else {
         // Increment failed attempts
-        const user = await collection.findOne({ _id: new ObjectId(userId) });
+        const user = await collection.findOne({ _id: new ObjectId(String(userId)) });
         const attempts = (user.loginAttempts || 0) + 1;
         const lockUntil =
           attempts >= 5 ? new Date(Date.now() + 15 * 60 * 1000) : null; // Lock for 15 minutes
 
         await collection.updateOne(
-          { _id: new ObjectId(userId) },
+          { _id: new ObjectId(String(userId)) },
           {
             $set: {
               loginAttempts: attempts,
@@ -291,7 +291,7 @@ class User {
   async isLocked(userId) {
     try {
       const collection = this.getCollection();
-      const user = await collection.findOne({ _id: new ObjectId(userId) });
+      const user = await collection.findOne({ _id: new ObjectId(String(userId)) });
 
       if (!user) {
         return false;
@@ -304,7 +304,7 @@ class User {
       // Clear lock if expired
       if (user.lockUntil && user.lockUntil <= new Date()) {
         await collection.updateOne(
-          { _id: new ObjectId(userId) },
+          { _id: new ObjectId(String(userId)) },
           {
             $set: {
               lockUntil: null,

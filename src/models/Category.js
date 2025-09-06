@@ -64,7 +64,7 @@ class Category {
   async findById(categoryId) {
     try {
       const collection = this.getCollection();
-      return await collection.findOne({ _id: new ObjectId(categoryId) });
+      return await collection.findOne({ _id: new ObjectId(String(categoryId)) });
     } catch (error) {
       logger.error('Error finding category by ID:', error);
       throw error;
@@ -76,8 +76,8 @@ class Category {
     try {
       const collection = this.getCollection();
       return await collection.findOne({
-        _id: new ObjectId(categoryId),
-        userId: new ObjectId(userId),
+        _id: new ObjectId(String(categoryId)),
+        userId: new ObjectId(String(userId)),
       });
     } catch (error) {
       logger.error('Error finding category by ID and user ID:', error);
@@ -91,7 +91,7 @@ class Category {
       const collection = this.getCollection();
       return await collection.findOne({
         name: name.trim(),
-        userId: new ObjectId(userId),
+        userId: new ObjectId(String(userId)),
       });
     } catch (error) {
       logger.error('Error finding category by name and user ID:', error);
@@ -117,7 +117,7 @@ class Category {
       const sort = { [sortBy]: sortOrder === 'desc' ? -1 : 1 };
 
       // Build filter
-      const filter = { userId: new ObjectId(userId) };
+      const filter = { userId: new ObjectId(String(userId)) };
       if (isActive !== null) {
         filter.isActive = isActive;
       }
@@ -158,7 +158,7 @@ class Category {
       updateData.updatedAt = new Date();
 
       const result = await collection.updateOne(
-        { _id: new ObjectId(categoryId) },
+        { _id: new ObjectId(String(categoryId)) },
         { $set: updateData }
       );
 
@@ -173,7 +173,7 @@ class Category {
   async deleteById(categoryId) {
     try {
       const collection = this.getCollection();
-      const result = await collection.deleteOne({ _id: new ObjectId(categoryId) });
+      const result = await collection.deleteOne({ _id: new ObjectId(String(categoryId)) });
       return result.deletedCount > 0;
     } catch (error) {
       logger.error('Error deleting category:', error);
@@ -188,7 +188,7 @@ class Category {
 
       return await collection
         .find({
-          userId: new ObjectId(userId),
+          userId: new ObjectId(String(userId)),
           isActive: true,
           type: type,
         })
@@ -207,7 +207,7 @@ class Category {
 
       const stats = await collection
         .aggregate([
-          { $match: { userId: new ObjectId(userId) } },
+          { $match: { userId: new ObjectId(String(userId)) } },
           {
             $group: {
               _id: null,
@@ -248,7 +248,7 @@ class Category {
       const collection = this.getCollection();
 
       const result = await collection.updateOne(
-        { _id: new ObjectId(categoryId) },
+        { _id: new ObjectId(String(categoryId)) },
         {
           $inc: { labelCount: 1 },
           $set: {
@@ -270,7 +270,7 @@ class Category {
       const collection = this.getCollection();
 
       const result = await collection.updateOne(
-        { _id: new ObjectId(categoryId) },
+        { _id: new ObjectId(String(categoryId)) },
         {
           $inc: { labelCount: -1 },
           $set: {
@@ -304,7 +304,7 @@ class Category {
 
       // Build filter
       const filter = {
-        userId: new ObjectId(userId),
+        userId: new ObjectId(String(userId)),
         $or: [
           { name: { $regex: query, $options: 'i' } },
           { description: { $regex: query, $options: 'i' } },
@@ -418,7 +418,7 @@ class Category {
 
       const categoriesToInsert = defaultCategories.map(category => ({
         ...category,
-        userId: new ObjectId(userId),
+        userId: new ObjectId(String(userId)),
         isActive: true,
         isDefault: false,
         labelCount: 0,
@@ -450,7 +450,7 @@ class Category {
         updateOne: {
           filter: {
             _id: new ObjectId(update.categoryId),
-            userId: new ObjectId(userId),
+            userId: new ObjectId(String(userId)),
           },
           update: {
             $set: {

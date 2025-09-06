@@ -36,8 +36,8 @@ class Label {
       const collection = this.getCollection();
 
       const label = {
-        userId: new ObjectId(labelData.userId),
-        categoryId: new ObjectId(labelData.categoryId),
+        userId: new ObjectId(String(labelData.userId)),
+        categoryId: new ObjectId(String(labelData.categoryId)),
         name: labelData.name.trim(),
         color: labelData.color || '#3B82F6',
         description: labelData.description || '',
@@ -68,7 +68,7 @@ class Label {
   async findById(labelId) {
     try {
       const collection = this.getCollection();
-      return await collection.findOne({ _id: new ObjectId(labelId) });
+      return await collection.findOne({ _id: new ObjectId(String(labelId)) });
     } catch (error) {
       logger.error('Error finding label by ID:', error);
       throw error;
@@ -80,8 +80,8 @@ class Label {
     try {
       const collection = this.getCollection();
       return await collection.findOne({
-        _id: new ObjectId(labelId),
-        userId: new ObjectId(userId),
+        _id: new ObjectId(String(labelId)),
+        userId: new ObjectId(String(userId)),
       });
     } catch (error) {
       logger.error('Error finding label by ID and user ID:', error);
@@ -95,7 +95,7 @@ class Label {
       const collection = this.getCollection();
       return await collection.findOne({
         name: name.trim(),
-        userId: new ObjectId(userId),
+        userId: new ObjectId(String(userId)),
       });
     } catch (error) {
       logger.error('Error finding label by name and user ID:', error);
@@ -121,7 +121,7 @@ class Label {
       const sort = { [sortBy]: sortOrder === 'desc' ? -1 : 1 };
 
       // Build filter
-      const filter = { userId: new ObjectId(userId) };
+      const filter = { userId: new ObjectId(String(userId)) };
       if (isActive !== null) {
         filter.isActive = isActive;
       }
@@ -162,7 +162,7 @@ class Label {
       updateData.updatedAt = new Date();
 
       const result = await collection.updateOne(
-        { _id: new ObjectId(labelId) },
+        { _id: new ObjectId(String(labelId)) },
         { $set: updateData }
       );
 
@@ -177,7 +177,7 @@ class Label {
   async deleteById(labelId) {
     try {
       const collection = this.getCollection();
-      const result = await collection.deleteOne({ _id: new ObjectId(labelId) });
+      const result = await collection.deleteOne({ _id: new ObjectId(String(labelId)) });
       return result.deletedCount > 0;
     } catch (error) {
       logger.error('Error deleting label:', error);
@@ -192,13 +192,13 @@ class Label {
 
       // Remove default from all other labels
       await collection.updateMany(
-        { userId: new ObjectId(userId) },
+        { userId: new ObjectId(String(userId)) },
         { $set: { isDefault: false } }
       );
 
       // Set this label as default
       const result = await collection.updateOne(
-        { _id: new ObjectId(labelId) },
+        { _id: new ObjectId(String(labelId)) },
         { $set: { isDefault: true, updatedAt: new Date() } }
       );
 
@@ -215,7 +215,7 @@ class Label {
       const collection = this.getCollection();
 
       const result = await collection.updateOne(
-        { _id: new ObjectId(labelId) },
+        { _id: new ObjectId(String(labelId)) },
         {
           $inc: { usageCount: 1 },
           $set: {
@@ -239,7 +239,7 @@ class Label {
 
       const stats = await collection
         .aggregate([
-          { $match: { userId: new ObjectId(userId) } },
+          { $match: { userId: new ObjectId(String(userId)) } },
           {
             $group: {
               _id: null,
@@ -279,7 +279,7 @@ class Label {
 
       return await collection
         .find({
-          userId: new ObjectId(userId),
+          userId: new ObjectId(String(userId)),
           isActive: true,
         })
         .sort({ usageCount: -1, lastUsedAt: -1 })
@@ -298,7 +298,7 @@ class Label {
 
       return await collection
         .find({
-          userId: new ObjectId(userId),
+          userId: new ObjectId(String(userId)),
           isActive: true,
           lastUsedAt: { $ne: null },
         })
@@ -318,8 +318,8 @@ class Label {
 
       return await collection
         .find({
-          userId: new ObjectId(userId),
-          categoryId: new ObjectId(categoryId),
+          userId: new ObjectId(String(userId)),
+          categoryId: new ObjectId(String(categoryId)),
           isActive: true,
         })
         .sort({ name: 1 })
@@ -337,7 +337,7 @@ class Label {
 
       return await collection
         .find({
-          userId: new ObjectId(userId),
+          userId: new ObjectId(String(userId)),
           isActive: true,
           'metadata.category': category,
         })
@@ -365,7 +365,7 @@ class Label {
 
       // Build filter
       const filter = {
-        userId: new ObjectId(userId),
+        userId: new ObjectId(String(userId)),
         $or: [
           { name: { $regex: query, $options: 'i' } },
           { description: { $regex: query, $options: 'i' } },
@@ -494,7 +494,7 @@ class Label {
         icon: label.icon,
         description: label.description,
         categoryId: categoryMap[label.categoryType] || null,
-        userId: new ObjectId(userId),
+        userId: new ObjectId(String(userId)),
         isActive: true,
         isDefault: false,
         usageCount: 0,
@@ -530,7 +530,7 @@ class Label {
         updateOne: {
           filter: {
             _id: new ObjectId(update.labelId),
-            userId: new ObjectId(userId),
+            userId: new ObjectId(String(userId)),
           },
           update: {
             $set: {
