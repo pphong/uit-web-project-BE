@@ -82,8 +82,8 @@ const userSchemas = {
   register: Joi.object({
     email: Joi.string().email().required().max(255),
     password: Joi.string().min(8).max(128).required(),
-    firstName: Joi.string().min(1).max(100).required(),
-    lastName: Joi.string().min(1).max(100).required(),
+    firstName: Joi.string().min(1).max(100).optional(),
+    lastName: Joi.string().min(1).max(100).optional(),
     phone: Joi.string().pattern(/^\+?[\d\s\-\(\)]+$/).optional(),
     dateOfBirth: Joi.date().max('now').optional(),
   }),
