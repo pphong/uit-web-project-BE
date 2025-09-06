@@ -152,7 +152,7 @@ class UserController {
   // Get user profile (for the authenticated user)
   async getUserProfile(req, res) {
     try {
-      const userId = req.user.userId;
+      const userId = req.user._id;
 
       const user = await this.userModel.findById(userId);
       if (!user) {
@@ -169,7 +169,7 @@ class UserController {
   // Update user profile (for the authenticated user)
   async updateUserProfile(req, res) {
     try {
-      const userId = req.user.userId;
+      const userId = req.user._id;
       const updateData = req.body;
 
       // Remove sensitive fields that shouldn't be updated

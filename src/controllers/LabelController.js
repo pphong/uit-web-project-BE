@@ -12,7 +12,7 @@ class LabelController {
   // Get user labels
   async getUserLabels(req, res) {
     try {
-      const userId = req.user.userId;
+      const userId = req.user._id;
       const {
         page = 1,
         limit = 10,
@@ -48,7 +48,7 @@ class LabelController {
   // Get label statistics
   async getLabelStats(req, res) {
     try {
-      const userId = req.user.userId;
+      const userId = req.user._id;
       const stats = await this.labelModel.getStats(userId);
 
       return ApiResponse.success(res, 'Label statistics retrieved successfully', stats);
@@ -61,7 +61,7 @@ class LabelController {
   // Get most used labels
   async getMostUsedLabels(req, res) {
     try {
-      const userId = req.user.userId;
+      const userId = req.user._id;
       const { limit = 10 } = req.query;
 
       const labels = await this.labelModel.getMostUsedLabels(userId, parseInt(limit));
@@ -76,7 +76,7 @@ class LabelController {
   // Get recently used labels
   async getRecentlyUsedLabels(req, res) {
     try {
-      const userId = req.user.userId;
+      const userId = req.user._id;
       const { limit = 10 } = req.query;
 
       const labels = await this.labelModel.getRecentlyUsedLabels(userId, parseInt(limit));
@@ -92,7 +92,7 @@ class LabelController {
   async getLabelById(req, res) {
     try {
       const { labelId } = req.params;
-      const userId = req.user.userId;
+      const userId = req.user._id;
 
       const label = await this.labelModel.findByIdAndUserId(labelId, userId);
       if (!label) {
@@ -109,7 +109,7 @@ class LabelController {
   // Create new label
   async createLabel(req, res) {
     try {
-      const userId = req.user.userId;
+      const userId = req.user._id;
       const labelData = { ...req.body, userId };
 
       // Check if label name already exists for this user
@@ -147,7 +147,7 @@ class LabelController {
   async updateLabel(req, res) {
     try {
       const { labelId } = req.params;
-      const userId = req.user.userId;
+      const userId = req.user._id;
       const updateData = req.body;
 
       const label = await this.labelModel.findByIdAndUserId(labelId, userId);
@@ -205,7 +205,7 @@ class LabelController {
   async deleteLabel(req, res) {
     try {
       const { labelId } = req.params;
-      const userId = req.user.userId;
+      const userId = req.user._id;
 
       const label = await this.labelModel.findByIdAndUserId(labelId, userId);
       if (!label) {
@@ -241,7 +241,7 @@ class LabelController {
   async setDefaultLabel(req, res) {
     try {
       const { labelId } = req.params;
-      const userId = req.user.userId;
+      const userId = req.user._id;
 
       const label = await this.labelModel.findByIdAndUserId(labelId, userId);
       if (!label) {
@@ -263,7 +263,7 @@ class LabelController {
   // Search labels
   async searchLabels(req, res) {
     try {
-      const userId = req.user.userId;
+      const userId = req.user._id;
       const { query } = req.query;
       const {
         page = 1,
@@ -301,7 +301,7 @@ class LabelController {
   // Get labels by category ID
   async getLabelsByCategoryId(req, res) {
     try {
-      const userId = req.user.userId;
+      const userId = req.user._id;
       const { categoryId } = req.params;
 
       // Validate category exists and belongs to user
@@ -329,7 +329,7 @@ class LabelController {
   // Get labels by category (legacy method for backward compatibility)
   async getLabelsByCategory(req, res) {
     try {
-      const userId = req.user.userId;
+      const userId = req.user._id;
       const { category } = req.params;
 
       const labels = await this.labelModel.findByCategory(userId, category);

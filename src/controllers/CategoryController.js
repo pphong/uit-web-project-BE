@@ -11,8 +11,9 @@ class CategoryController {
 
   // Get user categories
   async getUserCategories(req, res) {
+    
     try {
-      const userId = req.user.userId;
+      const userId = req.user._id;
       const {
         page = 1,
         limit = 10,
@@ -48,7 +49,7 @@ class CategoryController {
   // Get category statistics
   async getCategoryStats(req, res) {
     try {
-      const userId = req.user.userId;
+      const userId = req.user._id;
       const stats = await this.categoryModel.getStats(userId);
 
       return ApiResponse.success(res, 'Category statistics retrieved successfully', stats);
@@ -61,7 +62,7 @@ class CategoryController {
   // Get categories by type
   async getCategoriesByType(req, res) {
     try {
-      const userId = req.user.userId;
+      const userId = req.user._id;
       const { type } = req.params;
 
       if (!['expense', 'income'].includes(type)) {
@@ -84,7 +85,7 @@ class CategoryController {
   async getCategoryById(req, res) {
     try {
       const { categoryId } = req.params;
-      const userId = req.user.userId;
+      const userId = req.user._id;
 
       const category = await this.categoryModel.findByIdAndUserId(categoryId, userId);
       if (!category) {
@@ -109,7 +110,7 @@ class CategoryController {
   // Create new category
   async createCategory(req, res) {
     try {
-      const userId = req.user.userId;
+      const userId = req.user._id;
       const categoryData = { ...req.body, userId };
 
       // Check if category name already exists for this user
@@ -134,7 +135,7 @@ class CategoryController {
   async updateCategory(req, res) {
     try {
       const { categoryId } = req.params;
-      const userId = req.user.userId;
+      const userId = req.user._id;
       const updateData = req.body;
 
       const category = await this.categoryModel.findByIdAndUserId(categoryId, userId);
@@ -168,7 +169,7 @@ class CategoryController {
   async deleteCategory(req, res) {
     try {
       const { categoryId } = req.params;
-      const userId = req.user.userId;
+      const userId = req.user._id;
 
       const category = await this.categoryModel.findByIdAndUserId(categoryId, userId);
       if (!category) {
@@ -195,7 +196,7 @@ class CategoryController {
   // Search categories
   async searchCategories(req, res) {
     try {
-      const userId = req.user.userId;
+      const userId = req.user._id;
       const { query } = req.query;
       const {
         page = 1,
@@ -235,7 +236,7 @@ class CategoryController {
   // Get labels in category
   async getCategoryLabels(req, res) {
     try {
-      const userId = req.user.userId;
+      const userId = req.user._id;
       const { categoryId } = req.params;
 
       const category = await this.categoryModel.findByIdAndUserId(categoryId, userId);
@@ -262,7 +263,7 @@ class CategoryController {
   // Create default categories for user
   async createDefaultCategories(req, res) {
     try {
-      const userId = req.user.userId;
+      const userId = req.user._id;
 
       // Check if user already has categories
       const existingCategories = await this.categoryModel.findByUserId(userId, { page: 1, limit: 1 });
@@ -296,7 +297,7 @@ class CategoryController {
   // Bulk update categories
   async bulkUpdateCategories(req, res) {
     try {
-      const userId = req.user.userId;
+      const userId = req.user._id;
       const { updates } = req.body;
 
       if (!Array.isArray(updates) || updates.length === 0) {

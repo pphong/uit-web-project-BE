@@ -10,7 +10,7 @@ class WalletController {
   // Get user wallets
   async getUserWallets(req, res) {
     try {
-      const userId = req.user.userId;
+      const userId = req.user._id;
       const {
         page = 1,
         limit = 10,
@@ -42,7 +42,7 @@ class WalletController {
   // Get wallet statistics
   async getWalletStats(req, res) {
     try {
-      const userId = req.user.userId;
+      const userId = req.user._id;
       const stats = await this.walletModel.getStats(userId);
 
       return ApiResponse.success(res, 'Wallet statistics retrieved successfully', stats);
@@ -56,7 +56,7 @@ class WalletController {
   async getWalletById(req, res) {
     try {
       const { walletId } = req.params;
-      const userId = req.user.userId;
+      const userId = req.user._id;
 
       const wallet = await this.walletModel.findByIdAndUserId(walletId, userId);
       if (!wallet) {
@@ -73,7 +73,7 @@ class WalletController {
   // Create new wallet
   async createWallet(req, res) {
     try {
-      const userId = req.user.userId;
+      const userId = req.user._id;
       const walletData = { ...req.body, userId };
 
       const wallet = await this.walletModel.create(walletData);
@@ -92,7 +92,7 @@ class WalletController {
   async updateWallet(req, res) {
     try {
       const { walletId } = req.params;
-      const userId = req.user.userId;
+      const userId = req.user._id;
       const updateData = req.body;
 
       const wallet = await this.walletModel.findByIdAndUserId(walletId, userId);
@@ -118,7 +118,7 @@ class WalletController {
   async deleteWallet(req, res) {
     try {
       const { walletId } = req.params;
-      const userId = req.user.userId;
+      const userId = req.user._id;
 
       const wallet = await this.walletModel.findByIdAndUserId(walletId, userId);
       if (!wallet) {
@@ -145,7 +145,7 @@ class WalletController {
   async setDefaultWallet(req, res) {
     try {
       const { walletId } = req.params;
-      const userId = req.user.userId;
+      const userId = req.user._id;
 
       const wallet = await this.walletModel.findByIdAndUserId(walletId, userId);
       if (!wallet) {
@@ -167,7 +167,7 @@ class WalletController {
   // Transfer between wallets
   async transferBetweenWallets(req, res) {
     try {
-      const userId = req.user.userId;
+      const userId = req.user._id;
       const { fromWalletId, toWalletId, amount, description } = req.body;
 
       // Validate wallets belong to user
