@@ -100,9 +100,9 @@ class TransactionController {
       }
 
       // Validate required fields
-      if (!transactionData.amount || transactionData.amount <= 0) {
-        return ApiResponse.badRequest(res, 'Amount must be greater than 0');
-      }
+      // if (!transactionData.amount || transactionData.amount <= 0) {
+      //   return ApiResponse.badRequest(res, 'Amount must be greater than 0');
+      // }
 
       if (!transactionData.description || transactionData.description.trim() === '') {
         return ApiResponse.badRequest(res, 'Description is required');
