@@ -162,7 +162,7 @@ const walletSchemas = {
 const transactionSchemas = {
   // Create transaction
   createTransaction: Joi.object({
-    amount: Joi.number().precision(2).positive().required(),
+    amount: Joi.number().precision(2).required(),
     currency: Joi.string().length(3).uppercase().default('VND'),
     description: Joi.string().min(1).max(500).required(),
     receipt: Joi.string().uri().optional().allow(''),
