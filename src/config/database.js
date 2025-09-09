@@ -24,9 +24,11 @@ class Database {
       this.client = new MongoClient(mongoUri, options);
       await this.client.connect();
       
-      this.db = this.client.db();
+      // Extract database name from URI or use default
+      const dbName = this.extractDatabaseName(mongoUri) || 'expense_manager';
+      this.db = this.client.db(dbName);
       
-      logger.info('✅ MongoDB connected successfully');
+      logger.info(`✅ MongoDB connected successfully to database: ${dbName}`);
       
       // Handle connection events
       this.client.on('error', (err) => {
@@ -74,6 +76,20 @@ class Database {
 
   isConnected() {
     return this.client && this.client.topology && this.client.topology.isConnected();
+  }
+
+  // Extract database name from MongoDB URI
+  extractDatabaseName(uri) {
+    try {
+      const url = new URL(uri);
+      const pathname = url.pathname;
+      // Remove leading slash and get database name
+      const dbName = pathname.substring(1);
+      return dbName || null;
+    } catch (error) {
+      logger.warn('Could not extract database name from URI:', error.message);
+      return null;
+    }
   }
 
   // Helper method to get collection
