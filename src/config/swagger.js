@@ -22,7 +22,7 @@ const options = {
         description: 'Development server',
       },
       {
-        url: 'https://api.uit-web-project.com',
+        url: 'https://uit-web-project-be.onrender.com/',
         description: 'Production server',
       },
     ],
