@@ -27,7 +27,7 @@ const logFormat = winston.format.combine(
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
   format: logFormat,
-  defaultMeta: { service: 'Unknown Service' },
+  defaultMeta: { service: 'Expense Manager Service' },
   transports: [
     // Console transport
     new winston.transports.Console({
